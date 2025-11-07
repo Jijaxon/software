@@ -1,8 +1,10 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const path = require('path')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const authRouter = require('./routes/auth/auth-routs');
+const adminProductsRouter = require('./routes/admin/product-routes')
 // database connection
 
 mongoose
@@ -31,8 +33,13 @@ app.use(
 		credentials: true,
 	})
 );
+
 app.use(cookieParser());
 app.use(express.json());
 app.use('/api/auth', authRouter);
+app.use('/api/admin/products', adminProductsRouter);
+
+app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 app.get('/', (req,res) => res.status(200).json({ ok: true }))
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

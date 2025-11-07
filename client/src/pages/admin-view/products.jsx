@@ -1,12 +1,16 @@
-import {Fragment, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import {Button} from "@/components/ui/button.jsx";
 import {Sheet, SheetContent, SheetHeader, SheetTitle} from "@/components/ui/sheet.jsx";
 import CommonForm from "@/components/common/form.jsx";
 import {addProductFormElements} from "@/config";
+import {useDispatch, useSelector} from "react-redux";
+import {addNewProduct, deleteProduct, fetchAllProducts, updateProduct} from "@/store/admin/products-slice/index.js";
+import AdminProductTile from "@/components/admin-view/product-tile.jsx";
+import instance from "@/utils/axios.js";
 
 const initialFormData = {
-  image: null, title: "", description: "", category: "", brand: "", price: "", salePrice: "", totalStock: "",
+  title: "", description: "", category: "", brand: "", price: "", salePrice: "", totalStock: "",
 }
 
 function AdminProducts() {
@@ -14,9 +18,27 @@ function AdminProducts() {
   const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+  const [currentEditedId, setCurrentEditedId] = useState(null);
 
-  function onSubmit() {
+  const dispatch = useDispatch();
+  const { isLoading, productList } = useSelector((state) => state.adminProducts);
 
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, [dispatch]);
+
+  async function onSubmit(e) {
+    e.preventDefault();
+
+    currentEditedId !== null ?
+      await dispatch(updateProduct({id: currentEditedId, formData, imageFiles: imageFile}))
+      :
+      await dispatch(addNewProduct({ formData, imageFiles: imageFile }));
+
+    setFormData(initialFormData);
+    setImageFile([]);
+    setUploadedImageUrl([]);
+    setOpenCreateProductsDialog(false);
   }
 
   function isFormValid() {
@@ -26,12 +48,28 @@ function AdminProducts() {
       .every((item) => item);
   }
 
+  function handleDelete(getCurrentProductId) {
+    dispatch(deleteProduct({id: getCurrentProductId}))
+  }
+
   return (
     <Fragment>
       <div className="mb-5 w-full flex justify-end">
         <Button onClick={() => setOpenCreateProductsDialog(true)}>Add New Product</Button>
       </div>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+        {productList && productList?.data?.length > 0
+          ? productList?.data?.map((productItem) => (
+            <AdminProductTile
+              key={productItem?._id}
+              setFormData={setFormData}
+              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+              setCurrentEditedId={setCurrentEditedId}
+              product={productItem}
+              handleDelete={handleDelete}
+            />
+          ))
+          : null}
       </div>
       <Sheet
         open={openCreateProductsDialog}
