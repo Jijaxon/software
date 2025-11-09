@@ -20,7 +20,7 @@ export const fetchAllProducts = createAsyncThunk(
 
 export const addNewProduct = createAsyncThunk(
   "products/addNewProduct",
-  async ({formData, imageFiles}, {rejectWithValue, dispatch}) => {
+  async ({formData, imageFiles}, thunkAPI) => {
     try {
       const data = new FormData();
 
@@ -47,10 +47,10 @@ export const addNewProduct = createAsyncThunk(
           headers: {"Content-Type": "multipart/form-data"},
         }
       );
-      await dispatch(fetchAllProducts())
+      await thunkAPI.dispatch(fetchAllProducts())
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Server error");
+      return thunkAPI.rejectWithValue(error.response?.data || "Server error");
     }
   }
 );
