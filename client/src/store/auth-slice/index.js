@@ -41,11 +41,11 @@ export const loginUser = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk(
-  "/auth/logout",
+  "/auth/logoutUser",
 
   async () => {
     const response = await instance.post(
-      "/auth/logout",
+      "/auth/logoutUser",
       {},
       {
         withCredentials: true,
