@@ -1,4 +1,4 @@
-import axios from "axios";
+import instance from "@/utils/axios.js";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -8,17 +8,17 @@ const initialState = {
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ userId, productId, quantity }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/cart/add",
-      {
+  async ({ userId, productId, quantity }, thunkAPI) => {
+    try {
+      const { data } = await instance.post("/shop/cart/add", {
         userId,
         productId,
         quantity,
-      }
-    );
-
-    return response.data;
+      });
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    }
   }
 );
 
