@@ -16,15 +16,14 @@ function AuthLogin() {
   const dispatch = useDispatch();
 
   function onSubmit(event) {
-    event.preventDefault()
+    event.preventDefault();
     dispatch(loginUser(formData)).then(data => {
-      if (data?.payload.success) {
-        toast.success(data?.payload.message);
+      if (data?.payload?.success) {
+        toast.success(data?.payload?.message);
       } else {
-        toast.error(data?.payload.message)
+        toast.error(data?.payload?.message);
       }
-    })
-    //toast.success("User successfully logged in");
+    });
   }
 
 

@@ -1,5 +1,5 @@
 import instance from "@/utils/axios.js";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 
 const initialState = {
   cartItems: [],
@@ -8,9 +8,9 @@ const initialState = {
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ userId, productId, quantity }, thunkAPI) => {
+  async ({userId, productId, quantity}, thunkAPI) => {
     try {
-      const { data } = await instance.post("/shop/cart/add", {
+      const {data} = await instance.post("/shop/cart/add", {
         userId,
         productId,
         quantity,
@@ -24,41 +24,45 @@ export const addToCart = createAsyncThunk(
 
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
-  async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/cart/get/${userId}`
-    );
-
-    return response.data;
+  async (userId, thunkAPI) => {
+    try {
+      const {data} = await instance.get(`/shop/cart/get/${userId}`);
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    }
   }
 );
 
+
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
-  async ({ userId, productId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}`
-    );
-
-    return response.data;
+  async ({userId, productId}, thunkAPI) => {
+    try {
+      const {data} = await instance.delete(`/shop/cart/${userId}/${productId}`);
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    }
   }
 );
 
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
-  async ({ userId, productId, quantity }) => {
-    const response = await axios.put(
-      "http://localhost:5000/api/shop/cart/update-cart",
-      {
+  async ({userId, productId, quantity}) => {
+    try {
+      const {data} = await instance.put("/shop/cart/update-cart", {
         userId,
         productId,
         quantity,
-      }
-    );
-
-    return response.data;
+      });
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    }
   }
 );
+
 
 const shoppingCartSlice = createSlice({
   name: "shoppingCart",
