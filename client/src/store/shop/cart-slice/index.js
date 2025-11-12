@@ -49,7 +49,7 @@ export const deleteCartItem = createAsyncThunk(
 
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
-  async ({userId, productId, quantity}) => {
+  async ({userId, productId, quantity}, thunkAPI) => {
     try {
       const {data} = await instance.put("/shop/cart/update-cart", {
         userId,

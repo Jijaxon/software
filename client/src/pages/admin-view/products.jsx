@@ -7,7 +7,6 @@ import {addProductFormElements} from "@/config";
 import {useDispatch, useSelector} from "react-redux";
 import {addNewProduct, deleteProduct, fetchAllProducts, updateProduct} from "@/store/admin/products-slice/index.js";
 import AdminProductTile from "@/components/admin-view/product-tile.jsx";
-import instance from "@/utils/axios.js";
 
 const initialFormData = {
   title: "", description: "", category: "", brand: "", price: "", salePrice: "", totalStock: "",

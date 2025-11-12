@@ -1,5 +1,4 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
-import axios from "axios";
 import instance from "@/utils/axios.js";
 
 const initialState = {
@@ -11,67 +10,82 @@ const initialState = {
 export const registerUser = createAsyncThunk(
   "/auth/register",
 
-  async (formData) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/auth/register",
-      formData,
-      {
-        withCredentials: true,
-      }
-    );
+  async (formData, thunkAPI) => {
+    try {
+      const {data} = await instance.post(
+        "/auth/register",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
 
-    return response.data;
   }
 );
 
 export const loginUser = createAsyncThunk(
   "/auth/login",
 
-  async (formData) => {
-    const response = await instance.post(
-      "/auth/login",
-      formData,
-      {
-        withCredentials: true,
-      }
-    );
-
-    return response.data;
+  async (formData, thunkAPI) => {
+    try {
+      const {data} = await instance.post(
+        "/auth/login",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
   }
 );
 
 export const logoutUser = createAsyncThunk(
   "/auth/logoutUser",
 
-  async () => {
-    const response = await instance.post(
-      "/auth/logoutUser",
-      {},
-      {
-        withCredentials: true,
-      }
-    );
+  async (thunkAPI) => {
+    try {
+      const {data} = await instance.post(
+        "/auth/logoutUser",
+        {},
+        {
+          withCredentials: true,
+        }
+      );
 
-    return response.data;
+      return data;
+
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
   }
 );
 
 export const checkAuth = createAsyncThunk(
   "/auth/checkauth",
 
-  async () => {
-    const response = await instance.get(
-      "/auth/check-auth",
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-        },
-      }
-    );
-
-    return response.data;
+  async (thunkAPI) => {
+    try {
+      const {data} = await instance.get(
+        "/auth/check-auth",
+        {
+          withCredentials: true,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
   }
 );
 

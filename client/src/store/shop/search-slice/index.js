@@ -10,7 +10,7 @@ export const getSearchResults = createAsyncThunk(
   "/order/getSearchResults",
   async (keyword,thunkAPI) => {
     try{
-      const {data} = await instance().get(
+      const {data} = await instance.get(
         `/shop/search/${keyword}`
       );
       return data;

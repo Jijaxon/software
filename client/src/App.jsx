@@ -19,6 +19,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {useEffect} from "react";
 import {checkAuth} from "@/store/auth-slice/index.js";
 import {Skeleton} from "@/components/ui/skeleton"
+import About from "@/pages/shopping-view/about.jsx";
+import Search from "@/pages/shopping-view/search.jsx";
 
 function App() {
   const {user, isAuthenticated, isLoading} = useSelector(
@@ -53,6 +55,8 @@ function App() {
           <Route path="Account" element={<ShoppingAccount/>}/>
           <Route path="listing" element={<ShoppingListing/>}/>
           <Route path="checkout" element={<ShoppingCheckout/>}/>
+          <Route path="about" element={<About/>}/>
+          <Route path="search" element={<Search/>}/>
         </Route>
         <Route path="*" element={<NotFound/>}></Route>
         <Route path="unauth-page" element={<UnauthPage/>}/>

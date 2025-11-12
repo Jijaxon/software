@@ -2,7 +2,8 @@ import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
+import instance from "@/utils/axios.js";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -65,7 +66,7 @@ function UserCartItemsContent({ cartItem }) {
   return (
     <div className="flex items-center space-x-4">
       <img
-        src={cartItem?.image}
+        src={instance.defaults.baseURL + cartItem?.image}
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
       />

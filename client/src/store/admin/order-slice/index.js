@@ -16,8 +16,7 @@ export const getAllOrdersForAdmin = createAsyncThunk(
 
       return response.data;
     } catch (e) {
-      thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)    }
   }
 );
 
@@ -31,8 +30,7 @@ export const getOrderDetailsForAdmin = createAsyncThunk(
 
       return response.data;
     } catch (e) {
-      thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)    }
   }
 );
 
@@ -47,8 +45,7 @@ export const updateOrderStatus = createAsyncThunk(
         });
       return response.data;
     } catch (e) {
-      thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)    }
   }
 );
 

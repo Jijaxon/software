@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {sortOptions} from "@/config";
-import {toast} from "sonner";
+import {toast} from "react-toastify";
 import {addToCart, fetchCartItems} from "@/store/shop/cart-slice";
 import {fetchAllFilteredProducts, fetchProductDetails,} from "@/store/shop/products-slice";
 import {ArrowUpDownIcon} from "lucide-react";
@@ -28,8 +28,6 @@ function createSearchParamsHelper(filterParams) {
       queryParams.push(`${key}=${encodeURIComponent(paramValue)}`);
     }
   }
-
-  console.log(queryParams, "queryParams");
 
   return queryParams.join("&");
 }
@@ -81,20 +79,18 @@ function ShoppingListing() {
   }
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
-    let getCartItems = cartItems.items || [];
+    let getCartItems = cartItems?.items
 
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
+    if (getCartItems?.length) {
+      const indexOfCurrentItem = getCartItems?.findIndex(
+        (item) => item?.productId === getCurrentProductId
       );
       if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
+        const getQuantity = getCartItems[indexOfCurrentItem]?.quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
-            variant: "destructive",
-          });
+          toast.success(
+            `Only ${getQuantity} quantity can be added for this item`
+          );
 
           return;
         }
@@ -108,11 +104,10 @@ function ShoppingListing() {
         quantity: 1,
       })
     ).then((data) => {
+      console.log(data)
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
+        toast.success("Product is added to cart");
       }
     });
   }
@@ -140,8 +135,6 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  console.log(productList, "productListproductListproductList");
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
       <ProductFilter filters={filters} handleFilter={handleFilter}/>
@@ -165,7 +158,7 @@ function ShoppingListing() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
                 <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
-                  {sortOptions.map((sortItem) => (
+                  {sortOptions?.map((sortItem) => (
                     <DropdownMenuRadioItem
                       value={sortItem.id}
                       key={sortItem.id}
@@ -182,6 +175,7 @@ function ShoppingListing() {
           {productList && productList.length > 0
             ? productList.map((productItem) => (
               <ShoppingProductTile
+                key={productItem?._id}
                 handleGetProductDetails={handleGetProductDetails}
                 product={productItem}
                 handleAddtoCart={handleAddtoCart}

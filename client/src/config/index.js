@@ -104,12 +104,13 @@ export const addProductFormElements = [
 // Navigation menyu
 export const shoppingViewHeaderMenuItems = [
   { id: "home", label: "Home", path: "/shop/home" },
-  { id: "notebooks", label: "Notebooks", path: "/shop/listing" },
+  { id: "notebooks", label: "All products", path: "/shop/listing" },
   { id: "gaming", label: "Gaming Laptops", path: "/shop/listing" },
   { id: "business", label: "Business Laptops", path: "/shop/listing" },
   { id: "student", label: "Student Laptops", path: "/shop/listing" },
   { id: "accessories", label: "Accessories", path: "/shop/listing" },
   { id: "search", label: "Search", path: "/shop/search" },
+  { id: "about_us", label: "About us", path: "/shop/about" },
 ];
 
 // Kategoriya xaritasi
