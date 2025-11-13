@@ -6,7 +6,7 @@ const initialState = {
   featureImageList: [],
 };
 
-export const getFeatureImages = createAsyncThunk(
+export const  getFeatureImages = createAsyncThunk(
   "/order/getFeatureImages",
   async (_,thunkAPI) => {
     try {

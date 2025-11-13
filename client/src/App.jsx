@@ -1,4 +1,4 @@
-import {Routes, Route} from "react-router-dom";
+import {Route, Routes} from "react-router-dom";
 import AuthLayout from "@/components/auth/layout.jsx";
 import AuthLogin from "@/pages/auth/login.jsx";
 import AuthRegister from "@/pages/auth/register.jsx";
@@ -21,6 +21,7 @@ import {checkAuth} from "@/store/auth-slice/index.js";
 import {Skeleton} from "@/components/ui/skeleton"
 import About from "@/pages/shopping-view/about.jsx";
 import Search from "@/pages/shopping-view/search.jsx";
+
 
 function App() {
   const {user, isAuthenticated, isLoading} = useSelector(
@@ -57,6 +58,7 @@ function App() {
           <Route path="checkout" element={<ShoppingCheckout/>}/>
           <Route path="about" element={<About/>}/>
           <Route path="search" element={<Search/>}/>
+          <Route path="account" element={<ShoppingAccount/>}/>
         </Route>
         <Route path="*" element={<NotFound/>}></Route>
         <Route path="unauth-page" element={<UnauthPage/>}/>
