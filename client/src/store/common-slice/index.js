@@ -6,9 +6,9 @@ const initialState = {
   featureImageList: [],
 };
 
-export const  getFeatureImages = createAsyncThunk(
+export const getFeatureImages = createAsyncThunk(
   "/order/getFeatureImages",
-  async (_,thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
       const {data} = await instance.get(
         `/common/feature/get`
@@ -24,11 +24,33 @@ export const addFeatureImage = createAsyncThunk(
   "/order/addFeatureImage",
   async (image, thunkAPI) => {
     try {
-      const {data} = await instance.post(
+      const data = new FormData();
+
+      data.append("banner", image);
+
+      const response = await instance.post(
         `/common/feature/add`,
-        {image}
+        data,
+        {
+          headers: {"Content-Type": "multipart/form-data"},
+        }
       );
 
+      return response.data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
+  }
+);
+
+export const deleteFeatureImage = createAsyncThunk(
+  "/order/deleteFeatureImage",
+  async ({id}, thunkAPI) => {
+    try {
+      const {data} = await instance.delete(
+        `/common/feature/delete/${id}`
+      );
+      thunkAPI.dispatch(getFeatureImages())
       return data;
     } catch (e) {
       return thunkAPI.rejectWithValue(e?.response?.data || e.message)

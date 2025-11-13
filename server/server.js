@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express')
 const mongoose = require('mongoose')
 const path = require('path')
@@ -5,18 +6,19 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const authRouter = require('./routes/auth/auth-routs');
 const adminProductsRouter = require('./routes/admin/product-routes')
-const adminOrderRouter = require('./routes/admin/order-routes')
 
+const adminOrderRouter = require('./routes/admin/order-routes')
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
 const shopAddressRouter = require("./routes/shop/address-routes");
 const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
+
 const shopReviewRouter = require("./routes/shop/review-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
-// database connection
 
+// database connection
 mongoose
 	.connect(
     'mongodb+srv://azizasalimova098_db_user:Az!zaxon1949@cluster0.xmnc5y8.mongodb.net/ecommerce?retryWrites=true&w=majority'

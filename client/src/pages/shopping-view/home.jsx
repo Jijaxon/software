@@ -1,7 +1,4 @@
 import {Button} from "@/components/ui/button";
-import bannerOne from "../../assets/banner-1.png";
-import bannerTwo from "../../assets/banner-2.png";
-import bannerThree from "../../assets/banner-3.png";
 import {
   Apple,
   Battery,
@@ -25,6 +22,7 @@ import {addToCart, fetchCartItems} from "@/store/shop/cart-slice";
 import {toast} from "react-toastify";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import {getFeatureImages} from "@/store/common-slice";
+import instance from "@/utils/axios.js";
 
 const categoriesWithIcon = [
   {id: "gaming", label: "Gaming", icon: Laptop},
@@ -48,8 +46,6 @@ function ShoppingHome() {
     (state) => state.shopProducts
   );
   const {featureImageList} = useSelector((state) => state.commonFeature);
-
-  const slides = [bannerOne, bannerTwo, bannerThree]
 
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
@@ -95,11 +91,11 @@ function ShoppingHome() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList?.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [slides]);
+  }, [featureImageList]);
 
   useEffect(() => {
     dispatch(
@@ -119,11 +115,11 @@ function ShoppingHome() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
-        {slides && slides.length > 0
-          ? slides.map((slide, index) => (
+        {featureImageList && featureImageList?.length > 0
+          ? featureImageList?.map((slide, index) => (
             <img
               // src={instance.defaults.baseURL + slide?.image}
-              src={slide}
+              src={instance.defaults.baseURL + slide?.image}
               key={index}
               alt={"img"}
               className={`${
@@ -138,8 +134,8 @@ function ShoppingHome() {
           onClick={() =>
             setCurrentSlide(
               (prevSlide) =>
-                (prevSlide - 1 + slides.length) %
-                slides.length
+                (prevSlide - 1 + featureImageList?.length) %
+                featureImageList?.length
             )
           }
           className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
@@ -151,7 +147,7 @@ function ShoppingHome() {
           size="icon"
           onClick={() =>
             setCurrentSlide(
-              (prevSlide) => (prevSlide + 1) % slides.length
+              (prevSlide) => (prevSlide + 1) % featureImageList?.length
             )
           }
           className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"

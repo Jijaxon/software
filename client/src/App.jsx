@@ -21,6 +21,7 @@ import {checkAuth} from "@/store/auth-slice/index.js";
 import {Skeleton} from "@/components/ui/skeleton"
 import About from "@/pages/shopping-view/about.jsx";
 import Search from "@/pages/shopping-view/search.jsx";
+import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
 
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
           <Route path="Account" element={<ShoppingAccount/>}/>
           <Route path="listing" element={<ShoppingListing/>}/>
           <Route path="checkout" element={<ShoppingCheckout/>}/>
+          <Route path="success" element={<PaymentSuccessPage/>}/>
           <Route path="about" element={<About/>}/>
           <Route path="search" element={<Search/>}/>
           <Route path="account" element={<ShoppingAccount/>}/>

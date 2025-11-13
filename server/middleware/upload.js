@@ -8,13 +8,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const uploadPath = path.join(__dirname, "../uploads/products");
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+
+// if (!fs.existsSync(uploadPath)) {
+//   fs.mkdirSync(uploadPath, { recursive: true });
+// }
 
 const storage = multer.diskStorage({
+  // destination: (req, file, cb) => {
+  //   cb(null, uploadPath);
+  // },
+
   destination: (req, file, cb) => {
-    cb(null, uploadPath);
+    if (file.fieldname === "product_image") {
+      cb(null, 'uploads/products');
+    } else if (file.fieldname === "banner") {
+      cb(null, 'uploads/banners');
+    } else {
+      cb(new Error(`Invalid field name: ${file.fieldname}`), false);
+    }
   },
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);

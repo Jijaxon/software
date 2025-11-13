@@ -1,8 +1,11 @@
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { Button } from "@/components/ui/button";
-import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
+import {addFeatureImage, deleteFeatureImage, getFeatureImages} from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import instance from "@/utils/axios.js";
+import {TrashIcon} from "lucide-react";
+import {toast} from "react-toastify";
 
 function AdminDashboard() {
   const [imageFile, setImageFile] = useState(null);
@@ -11,10 +14,8 @@ function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
 
-  console.log(uploadedImageUrl, "uploadedImageUrl");
-
   function handleUploadFeatureImage() {
-    dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
+    dispatch(addFeatureImage(imageFile)).then((data) => {
       if (data?.payload?.success) {
         dispatch(getFeatureImages());
         setImageFile(null);
@@ -23,11 +24,17 @@ function AdminDashboard() {
     });
   }
 
+  function deleteImage(id) {
+    dispatch(deleteFeatureImage({id})).then((data) => {
+      if (data?.payload?.success) {
+        toast.error("Image deleted successfully!")
+      }
+    })
+  }
+
   useEffect(() => {
     dispatch(getFeatureImages());
   }, [dispatch]);
-
-  console.log(featureImageList, "featureImageList");
 
   return (
     <div>
@@ -41,15 +48,27 @@ function AdminDashboard() {
         isCustomStyling={true}
         // isEditMode={currentEditedId !== null}
       />
-      <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
+      <Button
+        onClick={handleUploadFeatureImage}
+        className="mt-5 w-full"
+        disabled={!imageFile}
+      >
         Upload
       </Button>
-      <div className="flex flex-col gap-4 mt-5">
+      <div className="flex flex-col gap-4 mt-5 overflow-hidden">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((featureImgItem) => (
-            <div className="relative">
+            <div className="relative w-full text-end" key={featureImgItem?._id}>
+              <Button
+                variant={"destructive"}
+                className={"mb-1"}
+                onClick={() => deleteImage(featureImgItem?._id)}
+              >
+                <TrashIcon color={"#fff"} />
+              </Button>
               <img
-                src={featureImgItem.image}
+                src={instance.defaults.baseURL + featureImgItem.image || ""}
+                alt={"image"}
                 className="w-full h-[300px] object-cover rounded-t-lg"
               />
             </div>
