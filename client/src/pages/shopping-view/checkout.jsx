@@ -192,7 +192,6 @@ function ShoppingCheckout() {
     };
 
     dispatch(createNewOrder(orderData)).then((res) => {
-      console.log(res)
       if (res?.payload?.success && res?.payload?.url) {
         setIsPaymentStart(true);
         // to‘lov sahifasiga yo‘naltirish

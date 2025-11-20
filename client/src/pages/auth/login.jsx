@@ -1,4 +1,4 @@
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
 import CommonForm from "@/components/common/form.jsx";
 import {loginFormControls} from "@/config/index.js";
@@ -14,12 +14,14 @@ const initialState = {
 function AuthLogin() {
   const [formData, setFormData] = useState(initialState)
   const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   function onSubmit(event) {
     event.preventDefault();
     dispatch(loginUser(formData)).then(data => {
       if (data?.payload?.success) {
         toast.success(data?.payload?.message);
+        navigate("/shop/home")
       } else {
         toast.error(data?.payload?.message);
       }

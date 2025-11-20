@@ -1,4 +1,4 @@
-import {Route, Routes} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import AuthLayout from "@/components/auth/layout.jsx";
 import AuthLogin from "@/pages/auth/login.jsx";
 import AuthRegister from "@/pages/auth/register.jsx";
@@ -40,7 +40,7 @@ function App() {
     <div className="flex flex-col overflow-hidden bg-white">
       <Routes>
         <Route path="/auth"
-               element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><AuthLayout/></CheckAuth>}>
+               element={<AuthLayout/>}>
           <Route path="login" element={<AuthLogin/>}/>
           <Route path="register" element={<AuthRegister/>}/>
         </Route>
@@ -51,8 +51,7 @@ function App() {
           <Route path="orders" element={<AdminOrders/>}/>
           <Route path="features" element={<AdminFeatures/>}/>
         </Route>
-        <Route path="shop"
-               element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><ShoppingLayout/></CheckAuth>}>
+        <Route path="shop" element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><ShoppingLayout/></CheckAuth>}>
           <Route path="home" element={<ShoppingHome/>}/>
           <Route path="Account" element={<ShoppingAccount/>}/>
           <Route path="listing" element={<ShoppingListing/>}/>
@@ -62,6 +61,9 @@ function App() {
           <Route path="search" element={<Search/>}/>
           <Route path="account" element={<ShoppingAccount/>}/>
         </Route>
+
+        <Route path="/" element={<Navigate to={'/shop/home'} />}/>
+
         <Route path="*" element={<NotFound/>}></Route>
         <Route path="unauth-page" element={<UnauthPage/>}/>
       </Routes>

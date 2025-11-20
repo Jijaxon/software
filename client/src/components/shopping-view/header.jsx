@@ -1,4 +1,4 @@
-import {HousePlug, LogOut, Menu, ShoppingCart, UserCog} from "lucide-react";
+import {ArrowUpDownIcon, HousePlug, LogOut, Menu, ShoppingCart, UserCog} from "lucide-react";
 import {Link, useLocation, useNavigate, useSearchParams,} from "react-router-dom";
 import {Sheet, SheetContent, SheetTrigger} from "../ui/sheet";
 import {Button} from "../ui/button";
@@ -101,28 +101,49 @@ function HeaderRightContent() {
         />
       </Sheet>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black">
-            <AvatarFallback className="bg-black text-white font-extrabold">
-              {user?.username[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.username}</DropdownMenuLabel>
-          <DropdownMenuSeparator/>
-          <DropdownMenuItem onClick={() => navigate("/shop/account")}>
-            <UserCog className="mr-2 h-4 w-4"/>
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuSeparator/>
-          <DropdownMenuItem onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4"/>
-            Logout
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {user ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar className="bg-black">
+              <AvatarFallback className="bg-black text-white font-extrabold">
+                {user?.username[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" className="w-56">
+            <DropdownMenuLabel>Logged in as {user?.username}</DropdownMenuLabel>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem onClick={() => navigate("/shop/account")}>
+              <UserCog className="mr-2 h-4 w-4"/>
+              Account
+            </DropdownMenuItem>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4"/>
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <>
+          <Button
+            variant="default"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => navigate("/auth/login")}
+          >
+            Login
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => navigate("/auth/register")}
+          >
+            Register
+          </Button>
+        </>
+      )}
     </div>
   );
 }

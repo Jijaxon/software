@@ -1,9 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import {useNavigate, useSearchParams} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import {useEffect} from "react";
+import {confirmPayment} from "@/store/shop/order-slice/index.js";
 
 function PaymentSuccessPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const orderId = JSON.parse(sessionStorage.getItem("currentOrderId"));
+
+    if (sessionId && orderId) {
+      dispatch(confirmPayment({ sessionId, orderId }))
+        .then(() => {
+          console.log("Payment confirmed successfully!");
+        })
+        .catch((err) => {
+          console.error("Payment confirmation failed:", err);
+        });
+    }
+  }, [searchParams, dispatch]);
 
   return (
     <Card className="p-10">

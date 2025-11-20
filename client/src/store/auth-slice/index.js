@@ -59,6 +59,7 @@ export const logoutUser = createAsyncThunk(
         }
       );
 
+      window.location.reload()
       return data;
 
     } catch (e) {

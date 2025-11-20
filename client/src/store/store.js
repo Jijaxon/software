@@ -11,11 +11,13 @@ import shopAddressSlice from "./shop/address-slice";
 
 import shopSearchSlice from "./shop/search-slice";
 import commonFeatureSlice from "./common-slice";
+import dashboardSlice from "@/store/admin/dashboard-slice/index.js";
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
 
+    dashboard: dashboardSlice,
     adminProducts: adminProductsSlice,
     adminOrder: adminOrderSlice,
 

@@ -18,6 +18,8 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
+const dashboardRouter = require("./routes/dashboard/dashboard-routes")
+
 // database connection
 mongoose
 	.connect(
@@ -34,6 +36,7 @@ app.use(
 	cors(
     {
 		origin: 'http://localhost:5173',
+		// origin: '*',
 		methods: ['GET', 'POST', 'DELETE', 'PUT'],
 		allowedHeaders: [
 			'Content-Type',
@@ -60,6 +63,8 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
+
+app.use("/api/dashboard", dashboardRouter);
 
 app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
 

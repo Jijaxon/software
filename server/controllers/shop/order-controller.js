@@ -292,6 +292,9 @@ const confirmPayment = async (req, res) => {
       order.paymentStatus = "paid";
       order.orderStatus = "confirmed";
       order.paymentId = session.payment_intent;
+      order.orderUpdateDate = new Date();
+
+      await order.save();
 
       // Ombordagi mahsulotlarni kamaytiramiz
       for (let item of order.cartItems) {
@@ -304,10 +307,11 @@ const confirmPayment = async (req, res) => {
 
       // Savatchani o‘chiramiz
       await Cart.findByIdAndDelete(order.cartId);
-      await order.save();
 
+      console.log("order", order)
       res.status(200).json({ success: true, message: "Order confirmed", data: order });
     } else {
+      console.log("not completed")
       res.status(400).json({ success: false, message: "Payment not completed" });
     }
   } catch (e) {
