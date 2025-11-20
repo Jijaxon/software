@@ -1,11 +1,11 @@
 import {
   BadgeCheck,
-  ChartNoAxesCombined,
+  ChartNoAxesCombined, ImageIcon,
   LayoutDashboard,
   ShoppingBasket,
 } from "lucide-react";
 import { Fragment } from "react";
-import { useNavigate } from "react-router-dom";
+import {NavLink, useNavigate} from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -20,6 +20,12 @@ const adminSidebarMenuItems = [
     label: "Dashboard",
     path: "/admin/dashboard",
     icon: <LayoutDashboard />,
+  },
+  {
+    id: "banners",
+    label: "Banners",
+    path: "/admin/banners",
+    icon: <ImageIcon />,
   },
   {
     id: "products",
@@ -41,17 +47,17 @@ function MenuItems({ setOpen }) {
   return (
     <nav className="mt-8 flex-col flex gap-2">
       {adminSidebarMenuItems.map((menuItem) => (
-        <button
+        <NavLink
+          to={menuItem.path}
           key={menuItem.id}
           onClick={() => {
-            navigate(menuItem.path);
             setOpen?.(false);
           }}
-          className="flex text-left text-xl items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground w-full"
+          className={({isActive}) => !isActive ? "flex text-left text-xl items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground w-full" : "flex text-left text-xl items-center gap-2 rounded-md px-3 py-2 bg-muted text-foreground"}
         >
           {menuItem.icon}
           <span>{menuItem.label}</span>
-        </button>
+        </NavLink>
       ))}
     </nav>
   );

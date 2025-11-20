@@ -40,8 +40,9 @@ function AdminOrdersView() {
               <TableHead>Order Date</TableHead>
               <TableHead>Order Status</TableHead>
               <TableHead>Order Price</TableHead>
+              <TableHead>Payment Status</TableHead>
               <TableHead>
-                <span className="sr-only">Details</span>
+                Details
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -65,6 +66,7 @@ function AdminOrdersView() {
                     </Badge>
                   </TableCell>
                   <TableCell>${orderItem?.totalAmount}</TableCell>
+                  <TableCell>{orderItem?.paymentStatus}</TableCell>
                   <TableCell>
                     <Dialog
                       open={openDetailsDialog}
