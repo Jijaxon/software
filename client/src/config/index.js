@@ -59,10 +59,10 @@ export const addProductFormElements = [
     name: "category",
     componentType: "select",
     options: [
-      { id: "gaming", label: "Gaming" },
-      { id: "business", label: "Business" },
-      { id: "student", label: "Student" },
-      { id: "accessories", label: "Accessories" },
+      {id: "gaming", label: "Gaming"},
+      {id: "business", label: "Business"},
+      {id: "student", label: "Student"},
+      {id: "accessories", label: "Accessories"},
     ],
   },
   {
@@ -70,12 +70,12 @@ export const addProductFormElements = [
     name: "brand",
     componentType: "select",
     options: [
-      { id: "hp", label: "HP" },
-      { id: "dell", label: "Dell" },
-      { id: "lenovo", label: "Lenovo" },
-      { id: "asus", label: "Asus" },
-      { id: "acer", label: "Acer" },
-      { id: "apple", label: "Apple" },
+      {id: "hp", label: "HP"},
+      {id: "dell", label: "Dell"},
+      {id: "lenovo", label: "Lenovo"},
+      {id: "asus", label: "Asus"},
+      {id: "acer", label: "Acer"},
+      {id: "apple", label: "Apple"},
     ],
   },
   {
@@ -103,14 +103,14 @@ export const addProductFormElements = [
 
 // Navigation menyu
 export const shoppingViewHeaderMenuItems = [
-  { id: "home", label: "Home", path: "/shop/home" },
-  { id: "notebooks", label: "All products", path: "/shop/listing" },
-  { id: "gaming", label: "Gaming Laptops", path: "/shop/listing" },
-  { id: "business", label: "Business Laptops", path: "/shop/listing" },
-  { id: "student", label: "Student Laptops", path: "/shop/listing" },
-  { id: "accessories", label: "Accessories", path: "/shop/listing" },
-  { id: "search", label: "Search", path: "/shop/search" },
-  { id: "about_us", label: "About us", path: "/shop/about" },
+  {id: "home", label: "Home", path: "/shop/home"},
+  {id: "notebooks", label: "All products", path: "/shop/listing"},
+  {id: "gaming", label: "Gaming Laptops", path: "/shop/listing"},
+  {id: "business", label: "Business Laptops", path: "/shop/listing"},
+  {id: "student", label: "Student Laptops", path: "/shop/listing"},
+  {id: "accessories", label: "Accessories", path: "/shop/listing"},
+  {id: "search", label: "Search", path: "/shop/search"},
+  {id: "about_us", label: "About us", path: "/shop/about"},
 ];
 
 // Kategoriya xaritasi
@@ -134,27 +134,27 @@ export const brandOptionsMap = {
 // Filterlar uchun variantlar
 export const filterOptions = {
   category: [
-    { id: "gaming", label: "Gaming" },
-    { id: "business", label: "Business" },
-    { id: "student", label: "Student" },
-    { id: "accessories", label: "Accessories" },
+    {id: "gaming", label: "Gaming"},
+    {id: "business", label: "Business"},
+    {id: "student", label: "Student"},
+    {id: "accessories", label: "Accessories"},
   ],
   brand: [
-    { id: "hp", label: "HP" },
-    { id: "dell", label: "Dell" },
-    { id: "lenovo", label: "Lenovo" },
-    { id: "asus", label: "Asus" },
-    { id: "acer", label: "Acer" },
-    { id: "apple", label: "Apple" },
+    {id: "hp", label: "HP"},
+    {id: "dell", label: "Dell"},
+    {id: "lenovo", label: "Lenovo"},
+    {id: "asus", label: "Asus"},
+    {id: "acer", label: "Acer"},
+    {id: "apple", label: "Apple"},
   ],
 };
 
 // Sort (saralash) variantlari
 export const sortOptions = [
-  { id: "price-lowtohigh", label: "Price: Low to High" },
-  { id: "price-hightolow", label: "Price: High to Low" },
-  { id: "title-atoz", label: "Model: A to Z" },
-  { id: "title-ztoa", label: "Model: Z to A" },
+  {id: "price-lowtohigh", label: "Price: Low to High"},
+  {id: "price-hightolow", label: "Price: High to Low"},
+  {id: "title-atoz", label: "Model: A to Z"},
+  {id: "title-ztoa", label: "Model: Z to A"},
 ];
 
 // Yetkazib berish (address formasi)
@@ -194,3 +194,27 @@ export const addressFormControls = [
     placeholder: "Enter any special delivery notes",
   },
 ];
+
+export const profileFormControls = [
+  {
+    label: "Email",
+    name: "email",
+    componentType: "input",
+    type: "mail",
+    placeholder: "Enter your email",
+  },
+  {
+    label: "Username",
+    name: "username",
+    componentType: "input",
+    type: "text",
+    placeholder: "Enter your username"
+  },
+  {
+    label: "Password",
+    name: "password",
+    componentType: "input",
+    type: "text",
+    placeholder: "Enter your password"
+  }
+]

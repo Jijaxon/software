@@ -46,6 +46,29 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const updateUser = createAsyncThunk(
+  "/auth/updateUser",
+
+  async (formData, thunkAPI) => {
+    try {
+      const {data} = await instance.put(
+        "/auth/update",
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
+  }
+);
+
 export const logoutUser = createAsyncThunk(
   "/auth/logoutUser",
 
@@ -116,8 +139,6 @@ const authSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log(action);
-
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
@@ -126,6 +147,15 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.isLoading = false;
       })
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;

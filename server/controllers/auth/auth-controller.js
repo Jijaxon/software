@@ -92,6 +92,54 @@ const loginUser = async (req, res) => {
   }
 };
 
+//update profile
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // token ichidan oldik
+    const { username, email, password } = req.body;
+
+    // Foydalanuvchini topish
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Yangilanish bo'yicha tekshirishlar
+    if (username) user.username = username;
+    if (email) user.email = email;
+
+    // Agar parol o'zgartirilayotgan bo'lsa
+    if (password) {
+      const hashed = await bcrypt.hash(password, 12);
+      user.password = hashed;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+
+  } catch (e) {
+    console.log("Update error:", e.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
 //logout
 const logoutUser = (req, res) => {
   res.clearCookie("token").json({
@@ -121,4 +169,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, authMiddleware };
+module.exports = { registerUser, loginUser, updateProfile, logoutUser, authMiddleware };
