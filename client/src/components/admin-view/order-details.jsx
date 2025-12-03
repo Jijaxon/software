@@ -17,8 +17,6 @@ function AdminOrderDetailsView({orderDetails}) {
   const {user} = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  console.log(orderDetails, "orderDetailsorderDetails");
-
   function handleUpdateStatus(event) {
     event.preventDefault();
     const {status} = formData;
@@ -44,6 +42,10 @@ function AdminOrderDetailsView({orderDetails}) {
           <div className="flex mt-6 items-center justify-between">
             <p className="font-medium">Order ID</p>
             <Label>{orderDetails?._id}</Label>
+          </div>
+          <div className="flex mt-6 items-center justify-between">
+            <p className="font-medium">Order Person</p>
+            <Label>{orderDetails?.userId?.username}, {orderDetails?.userId?.email}</Label>
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Date</p>

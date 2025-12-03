@@ -21,8 +21,6 @@ function AdminOrdersView() {
     dispatch(getAllOrdersForAdmin());
   }, [dispatch]);
 
-  console.log(orderDetails, "orderList");
-
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
   }, [orderDetails]);
@@ -37,6 +35,7 @@ function AdminOrdersView() {
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
+              <TableHead>Order Person</TableHead>
               <TableHead>Order Date</TableHead>
               <TableHead>Order Status</TableHead>
               <TableHead>Order Price</TableHead>
@@ -51,6 +50,7 @@ function AdminOrdersView() {
               ? orderList.map((orderItem) => (
                 <TableRow>
                   <TableCell>{orderItem?._id}</TableCell>
+                  <TableCell>{orderItem?.userId?.username}, {orderItem?.userId?.email}</TableCell>
                   <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
                   <TableCell>
                     <Badge
