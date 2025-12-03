@@ -11,16 +11,14 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       ? cartItems.reduce(
         (sum, currentItem) =>
           sum +
-          (currentItem?.salePrice > 0
-            ? currentItem?.salePrice
-            : currentItem?.price) *
+          (currentItem?.price - (Number(currentItem?.price) * Number(currentItem?.salePrice) / 100)) *
           currentItem?.quantity,
         0
       )
       : 0;
 
   return (
-    <SheetContent className="sm:max-w-md">
+    <SheetContent className="sm:max-w-md" key={cartItems?._id}>
       <SheetHeader>
         <SheetTitle>Your Cart</SheetTitle>
       </SheetHeader>

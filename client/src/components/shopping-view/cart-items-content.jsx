@@ -99,7 +99,7 @@ function UserCartItemsContent({ cartItem }) {
         <p className="font-semibold">
           $
           {(
-            (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
+            (cartItem?.price - (Number(cartItem?.price) * Number(cartItem?.salePrice) / 100)) *
             cartItem?.quantity
           ).toFixed(2)}
         </p>

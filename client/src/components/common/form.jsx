@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select.jsx";
 import {Button} from "@/components/ui/button.jsx";
 
-function CommonForm({formControls,formData,setFormData,onSubmit,buttonText}){
+function CommonForm({formControls,formData,setFormData,onSubmit,buttonText, isBtnDisabled}){
   function renderInputsByComponentType(getControlItem) {
     let element = null;
     const value = formData[getControlItem.name] || "";
@@ -106,7 +106,7 @@ function CommonForm({formControls,formData,setFormData,onSubmit,buttonText}){
           </div>)
         }
       </div>
-      <Button type="submit" className='mt-2 w-full'>{buttonText || 'Submit'}
+      <Button disabled={isBtnDisabled} type="submit" className='mt-2 w-full'>{buttonText || 'Submit'}
       </Button>
     </form>
   );

@@ -235,7 +235,7 @@ const createOrder = async (req, res) => {
           product_data: {
             name: item.title,
           },
-          unit_amount: item?.price,
+          unit_amount: item?.price - (Number(item?.price) * Number(item?.salePrice) / 100),
         },
         quantity: item.quantity,
       })),

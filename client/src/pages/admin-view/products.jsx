@@ -20,7 +20,7 @@ function AdminProducts() {
   const [currentEditedId, setCurrentEditedId] = useState(null);
 
   const dispatch = useDispatch();
-  const { isLoading, productList } = useSelector((state) => state.adminProducts);
+  const { productList } = useSelector((state) => state.adminProducts);
 
   useEffect(() => {
     dispatch(fetchAllProducts());
@@ -35,12 +35,29 @@ function AdminProducts() {
       await dispatch(addNewProduct({ formData, imageFiles: imageFile }));
 
     setFormData(initialFormData);
-    setImageFile([]);
-    setUploadedImageUrl([]);
+    setImageFile(null);
+    setUploadedImageUrl(null);
     setOpenCreateProductsDialog(false);
   }
 
   function isFormValid() {
+    const { price, salePrice, totalStock } = formData;
+
+    // PRICE tekshiruv
+    const priceNum = Number(price);
+    if (isNaN(priceNum) || priceNum <= 0) return false;  // ❌ harf, ❌ manfiy, ❌ 0
+
+    // SALE PRICE tekshiruv
+    if (salePrice !== "") {
+      const saleNum = Number(salePrice);
+      if (isNaN(saleNum) || saleNum < 0) return false;   // ❌ manfiy, ❌ harf
+      if (saleNum >= priceNum) return false;             // ❌ salePrice > price bo'lmasin
+    }
+
+    // TOTAL STOCK tekshiruv
+    const stockNum = Number(totalStock);
+    if (isNaN(stockNum) || stockNum <= 0) return false;  // ❌ harf, ❌ manfiy, ❌ 0
+
     return Object.keys(formData)
       .filter((currentKey) => currentKey !== "averageReview")
       .map((key) => formData[key] !== "")

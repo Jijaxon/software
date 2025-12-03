@@ -146,7 +146,7 @@ function ShoppingCheckout() {
       ? cartItems.items.reduce(
         (sum, item) =>
           sum +
-          (item.salePrice > 0 ? item.salePrice : item.price) * item.quantity,
+          (item?.price - (Number(item?.price) * Number(item?.salePrice) / 100)) * item.quantity,
         0
       )
       : 0;
@@ -171,6 +171,7 @@ function ShoppingCheckout() {
         image: item.image,
         // price: item.salePrice > 0 ? item.salePrice : item.price,
         price: item.price * 100,
+        salePrice: item.salePrice,
         quantity: item.quantity,
       })),
       addressInfo: {

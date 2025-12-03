@@ -25,11 +25,13 @@ export const addToCart = createAsyncThunk(
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId, thunkAPI) => {
-    try {
-      const {data} = await instance.get(`/shop/cart/get/${userId}`);
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    if (userId) {
+      try {
+        const {data} = await instance.get(`/shop/cart/get/${userId}`);
+        return data;
+      } catch (e) {
+        return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+      }
     }
   }
 );
