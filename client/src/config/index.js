@@ -86,7 +86,7 @@ export const addProductFormElements = [
     placeholder: "Enter notebook price",
   },
   {
-    label: "Discount Price ($)",
+    label: "Discount Percentage (%)",
     name: "salePrice",
     componentType: "input",
     type: "number",
