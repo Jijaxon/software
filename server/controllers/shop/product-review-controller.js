@@ -67,7 +67,7 @@ const getProductReviews = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const reviews = await ProductReview.find({ productId });
+    const reviews = await ProductReview.find({ productId }).populate("userId", "username email")
     res.status(200).json({
       success: true,
       data: reviews,

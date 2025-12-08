@@ -1,4 +1,4 @@
-import { StarIcon } from "lucide-react";
+import {HeartIcon, StarIcon} from "lucide-react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
@@ -13,15 +13,22 @@ import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
 import  {toast} from "react-toastify";
 import instance from "@/utils/axios.js";
+import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const dispatch = useDispatch();
+
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
-  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
+  const {wishlistItems} = useSelector(state => state.shopWishlist)
+
+  function calculateSale() {
+    return productDetails?.price - (Number(productDetails?.price) * Number(productDetails?.salePrice) / 100)
+  }
 
   function handleRatingChange(getRating) {
     setRating(getRating);
@@ -97,6 +104,18 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       reviews.length
       : 0;
 
+  function toggleWishlist(productId) {
+    if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
+      dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
+        dispatch(fetchWishlistItems(user?.id))
+      })
+    } else {
+      dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
+        dispatch(fetchWishlistItems(user?.id))
+      })
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
@@ -126,7 +145,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             </p>
             {productDetails?.salePrice > 0 ? (
               <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.salePrice}
+                ${calculateSale()}
               </p>
             ) : null}
           </div>
@@ -144,23 +163,36 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 Out of Stock
               </Button>
             ) : (
-              <Button
-                className="w-full"
-                onClick={() =>
-                  {
+              <div className={"flex items-center justify-between w-full"}>
+                <Button
+                  onClick={() => {
                     if (user) {
-                      handleAddToCart(
-                        productDetails?._id,
-                        productDetails?.totalStock
-                      )
+                      handleAddToCart(productDetails?._id, productDetails?.totalStock)
                     } else {
                       toast.error("You're not logged in!")
                     }
-                  }
-                }
-              >
-                Add to Cart
-              </Button>
+                  }}
+                  className="w-2/3"
+                >
+                  Add to cart
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (user) {
+                      toggleWishlist(productDetails?._id)
+                    } else {
+                      toast.error("You're not logged in!")
+                    }
+                  }}
+                  className="w-2/8"
+                >
+                  {wishlistItems?.items?.find((el) => el?.productId === productDetails?._id) ? (
+                    <HeartIcon className={"size-7"} fill={"#fff"} />
+                  ) : (
+                    <HeartIcon className={"size-7"} />
+                  )}
+                </Button>
+              </div>
             )}
           </div>
           <Separator />
@@ -168,11 +200,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <h2 className="text-xl font-bold mb-4">Reviews</h2>
             <div className="grid gap-6">
               {reviews && reviews.length > 0 ? (
-                reviews.map((reviewItem) => (
+                reviews?.map((reviewItem) => (
                   <div className="flex gap-4" key={reviewItem?._id}>
                     <Avatar className="w-10 h-10 border">
                       <AvatarFallback>
-                        {reviewItem?.userName[0].toUpperCase()}
+                        {reviewItem?.userId?.username[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid gap-1">
@@ -183,7 +215,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                         <StarRatingComponent rating={reviewItem?.reviewValue} />
                       </div>
                       <p className="text-muted-foreground">
-                        {reviewItem.reviewMessage}
+                        {reviewItem?.reviewMessage}
                       </p>
                     </div>
                   </div>

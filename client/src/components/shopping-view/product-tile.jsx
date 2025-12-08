@@ -5,7 +5,7 @@ import {Badge} from "../ui/badge";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
 import {toast} from "react-toastify";
-import {HeartIcon} from "lucide-react";
+import {HeartIcon, StarIcon} from "lucide-react";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 
 function ShoppingProductTile({
@@ -80,6 +80,10 @@ function ShoppingProductTile({
                 ${calculateSale()}
               </span>
             ) : null}
+          </div>
+          <div className={"flex items-center gap-1"}>
+            <StarIcon size={20} fill={"yellow"} />
+            {product?.averageReview || 0}
           </div>
         </CardContent>
       </div>
