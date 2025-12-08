@@ -65,6 +65,18 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
+export const clearCartItems = createAsyncThunk(
+  "cart/clearCartItems",
+  async ({userId}, thunkAPI) => {
+    try {
+      const {data} = await instance.delete(`/shop/cart/clear/${userId}`);
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message);
+    }
+  }
+)
+
 
 const shoppingCartSlice = createSlice({
   name: "shoppingCart",
@@ -113,6 +125,17 @@ const shoppingCartSlice = createSlice({
         state.cartItems = action.payload.data;
       })
       .addCase(deleteCartItem.rejected, (state) => {
+        state.isLoading = false;
+        state.cartItems = [];
+      })
+      .addCase(clearCartItems.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(clearCartItems.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.cartItems = action.payload.data;
+      })
+      .addCase(clearCartItems.rejected, (state) => {
         state.isLoading = false;
         state.cartItems = [];
       });

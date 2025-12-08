@@ -20,6 +20,8 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 
 const dashboardRouter = require("./routes/dashboard/dashboard-routes")
 
+const wishlistRouter = require("./routes/shop/wishlist-routes")
+
 // database connection
 mongoose
 	.connect(
@@ -61,6 +63,8 @@ app.use("/api/shop/address", shopAddressRouter);
 app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
+
+app.use("/api/shop/wishlist", wishlistRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 

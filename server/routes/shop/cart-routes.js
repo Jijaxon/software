@@ -4,7 +4,7 @@ const {
   addToCart,
   fetchCartItems,
   deleteCartItem,
-  updateCartItemQty,
+  updateCartItemQty, clearCartItems,
 } = require("../../controllers/shop/cart-controller");
 
 const router = express.Router();
@@ -13,5 +13,6 @@ router.post("/add", addToCart);
 router.get("/get/:userId", fetchCartItems);
 router.put("/update-cart", updateCartItemQty);
 router.delete("/:userId/:productId", deleteCartItem);
+router.delete("/clear/:userId", clearCartItems)
 
 module.exports = router;

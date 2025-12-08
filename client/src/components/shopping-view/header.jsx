@@ -1,4 +1,4 @@
-import {ArrowUpDownIcon, HousePlug, LogOut, Menu, ShoppingCart, UserCog} from "lucide-react";
+import {ArrowUpDownIcon, HeartIcon, HousePlug, LogOut, Menu, ShoppingCart, UserCog} from "lucide-react";
 import {Link, useLocation, useNavigate, useSearchParams,} from "react-router-dom";
 import {Sheet, SheetContent, SheetTrigger} from "../ui/sheet";
 import {Button} from "../ui/button";
@@ -18,6 +18,8 @@ import UserCartWrapper from "./cart-wrapper";
 import {useEffect, useState} from "react";
 import {fetchCartItems} from "@/store/shop/cart-slice";
 import {Label} from "../ui/label";
+import {fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
+import UserWishlistWrapper from "@/components/shopping-view/wishlist-wrapper.jsx";
 
 function MenuItems() {
   const navigate = useNavigate();
@@ -64,7 +66,9 @@ function MenuItems() {
 function HeaderRightContent() {
   const {user} = useSelector((state) => state.auth);
   const {cartItems} = useSelector((state) => state.shopCart);
+  const {wishlistItems} = useSelector(state => state.shopWishlist)
   const [openCartSheet, setOpenCartSheet] = useState(false);
+  const [openWishlistSheet, setOpenWishlistSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -74,6 +78,7 @@ function HeaderRightContent() {
 
   useEffect(() => {
     dispatch(fetchCartItems(user?.id));
+    dispatch(fetchWishlistItems(user?.id))
   }, [dispatch]);
 
   return (
@@ -96,6 +101,28 @@ function HeaderRightContent() {
           cartItems={
             cartItems && cartItems.items && cartItems.items.length > 0
               ? cartItems.items
+              : []
+          }
+        />
+      </Sheet>
+      <Sheet open={openWishlistSheet} onOpenChange={() => setOpenWishlistSheet(false)}>
+        <Button
+          onClick={() => setOpenWishlistSheet(true)}
+          variant="outline"
+          size="icon"
+          className="relative"
+        >
+          <HeartIcon className="w-6 h-6"/>
+          <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
+            {wishlistItems?.items?.length || 0}
+          </span>
+          <span className="sr-only">User wishlist</span>
+        </Button>
+        <UserWishlistWrapper
+          setOpenWishlistSheet={setOpenCartSheet}
+          wishlistItems={
+            wishlistItems && wishlistItems.items && wishlistItems.items.length > 0
+              ? wishlistItems.items
               : []
           }
         />

@@ -1,14 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {useNavigate, useSearchParams} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {useEffect} from "react";
 import {confirmPayment} from "@/store/shop/order-slice/index.js";
+import {clearCartItems} from "@/store/shop/cart-slice/index.js";
 
 function PaymentSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
@@ -18,6 +21,7 @@ function PaymentSuccessPage() {
       dispatch(confirmPayment({ sessionId, orderId }))
         .then(() => {
           console.log("Payment confirmed successfully!");
+          dispatch(clearCartItems({userId: user?.id}))
         })
         .catch((err) => {
           console.error("Payment confirmation failed:", err);

@@ -147,10 +147,16 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               <Button
                 className="w-full"
                 onClick={() =>
-                  handleAddToCart(
-                    productDetails?._id,
-                    productDetails?.totalStock
-                  )
+                  {
+                    if (user) {
+                      handleAddToCart(
+                        productDetails?._id,
+                        productDetails?.totalStock
+                      )
+                    } else {
+                      toast.error("You're not logged in!")
+                    }
+                  }
                 }
               >
                 Add to Cart

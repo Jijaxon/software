@@ -3,7 +3,10 @@ import {Button} from "../ui/button";
 import {brandOptionsMap, categoryOptionsMap} from "@/config";
 import {Badge} from "../ui/badge";
 import instance from "@/utils/axios.js";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {toast} from "react-toastify";
+import {HeartIcon} from "lucide-react";
+import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 
 function ShoppingProductTile({
                                product,
@@ -11,10 +14,25 @@ function ShoppingProductTile({
                                handleAddtoCart,
                              }) {
 
+  const dispatch = useDispatch()
+
   const {user} = useSelector(state => state.auth)
+  const {wishlistItems} = useSelector(state => state.shopWishlist)
 
   function calculateSale() {
     return product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)
+  }
+
+  function toggleWishlist(productId) {
+    if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
+      dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
+        dispatch(fetchWishlistItems(user?.id))
+      })
+    } else {
+      dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
+        dispatch(fetchWishlistItems(user?.id))
+      })
+    }
   }
 
   return (
@@ -71,12 +89,36 @@ function ShoppingProductTile({
             Out Of Stock
           </Button>
         ) : (
-          <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full"
-          >
-            Add to cart
-          </Button>
+          <div className={"flex items-center justify-between w-full"}>
+            <Button
+              onClick={() => {
+                if (user) {
+                  handleAddtoCart(product?._id, product?.totalStock)
+                } else {
+                  toast.error("You're not logged in!")
+                }
+              }}
+              className="w-2/3"
+            >
+              Add to cart
+            </Button>
+            <Button
+              onClick={() => {
+                if (user) {
+                  toggleWishlist(product?._id)
+                } else {
+                  toast.error("You're not logged in!")
+                }
+              }}
+              className="w-2/8"
+            >
+              {wishlistItems?.items?.find((el) => el?.productId === product?._id) ? (
+                <HeartIcon className={"size-7"} fill={"#fff"} />
+              ) : (
+                <HeartIcon className={"size-7"} />
+              )}
+            </Button>
+          </div>
         )}
       </CardFooter>
     </Card>
