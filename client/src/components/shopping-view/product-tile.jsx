@@ -81,10 +81,6 @@ function ShoppingProductTile({
               </span>
             ) : null}
           </div>
-          <div className={"flex items-center gap-1"}>
-            <StarIcon size={20} fill={"yellow"} />
-            {product?.averageReview || 0}
-          </div>
         </CardContent>
       </div>
       <CardFooter>
