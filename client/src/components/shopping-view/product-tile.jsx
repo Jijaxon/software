@@ -5,7 +5,7 @@ import {Badge} from "../ui/badge";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
 import {toast} from "react-toastify";
-import {HeartIcon, StarIcon} from "lucide-react";
+import {HeartIcon} from "lucide-react";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 
 function ShoppingProductTile({
@@ -27,10 +27,12 @@ function ShoppingProductTile({
     if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
+        toast.error("Product removed wishlist")
       })
     } else {
       dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
+        toast.success("Product added wishlist")
       })
     }
   }
