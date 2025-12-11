@@ -114,6 +114,50 @@ const verifyUser = async (req, res) => {
   }
 }
 
+// resend verification code
+const resendVerificationCode = async (req, res) => {
+  const {email} = req.body
+
+  try {
+    const checkUser = await User.findOne({email});
+    if (!checkUser)
+      return res.json({
+        success: false,
+        message: "User doesn't exists! Please register first",
+      });
+
+    if (checkUser.verify)
+      return res.json({
+        success: false,
+        message: "User already verified!",
+      });
+
+    const code = generateCode()
+
+    // send verification email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Verify your account',
+      text: `Your verification code is: ${code}`
+    })
+
+    checkUser.verification_code = code
+
+    await checkUser.save()
+    res.json({
+      success: true,
+      message: "Verification code resent to email",
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occured",
+    });
+  }
+}
+
 //login
 const loginUser = async (req, res) => {
   const {email, password} = req.body;
@@ -250,4 +294,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, updateProfile, logoutUser, authMiddleware, verifyUser };
+module.exports = { registerUser, loginUser, updateProfile, logoutUser, authMiddleware, verifyUser, resendVerificationCode };

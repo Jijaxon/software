@@ -43,7 +43,25 @@ export const verifyUser = createAsyncThunk(
     } catch (e) {
       return thunkAPI.rejectWithValue(e?.response?.data || e.message)
     }
+  }
+);
 
+export const resendVerificationCode = createAsyncThunk(
+  "/auth/resendVerificationCode",
+
+  async (formData, thunkAPI) => {
+    try {
+      const {data} = await instance.post(
+        "/auth/resend-verification",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
   }
 );
 
@@ -164,6 +182,19 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       })
       .addCase(verifyUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(resendVerificationCode.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(resendVerificationCode.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(resendVerificationCode.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;

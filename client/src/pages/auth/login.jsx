@@ -44,6 +44,15 @@ function AuthLogin() {
             Register
           </Link>
         </p>
+        <p className="mt-2">
+          Verify your email
+          <Link
+            className="font-medium ml-2 text-primary hover:underline"
+            to="/auth/verify"
+          >
+            Verify
+          </Link>
+        </p>
       </div>
       <CommonForm
         formControls={loginFormControls}

@@ -32,6 +32,16 @@ export const verifyFormControls = [
   },
 ]
 
+export const reVerifyFormControls = [
+  {
+    name: "email",
+    label: "Email",
+    placeholder: "Enter your email",
+    componentType: "input",
+    type: "mail",
+  },
+]
+
 export const loginFormControls = [
   {
     name: "email",

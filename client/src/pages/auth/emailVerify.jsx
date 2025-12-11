@@ -1,31 +1,30 @@
-import {Link, useNavigate, useSearchParams} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
 import CommonForm from "@/components/common/form.jsx";
-import {verifyFormControls} from "@/config/index.js";
+import {reVerifyFormControls} from "@/config/index.js";
 import {useDispatch} from "react-redux";
-import {  verifyUser} from "@/store/auth-slice/index.js";
+import {resendVerificationCode} from "@/store/auth-slice/index.js";
 import {toast} from "react-toastify";
 
 const initialState = {
-  code: ""
+  email: '',
 }
 
-function AuthVerify() {
+function AuthEmailVerify() {
   const [formData, setFormData] = useState(initialState);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
-  const email = searchParams.get("email");
-
 
   function onSubmit(event) {
     event.preventDefault();
-    console.log(formData)
-    dispatch(verifyUser({email, code: formData.code})).then((data) => {
+    dispatch(resendVerificationCode(formData)).then((data) => {
       if (data?.payload?.success) {
-        toast.success(data?.payload?.message || "Verify successfully!");
-        navigate("/auth/login");
+        toast.success(data?.payload?.message || "Code sent!");
+        setTimeout(() => {
+          navigate("/auth/verify-email?email=" + formData.email);
+        }, 200)
+        // navigate("/auth/login");
       } else {
         toast.error("User already exists! Please try again!", {
           variant: "destructive",
@@ -38,6 +37,8 @@ function AuthVerify() {
     });
   }
 
+  console.log(formData);
+
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
       <div className="text-center">
@@ -45,12 +46,19 @@ function AuthVerify() {
           Verify your email
         </h1>
         <p className="mt-2">
-          We sent a verification code to <b>{email}</b>. Enter it below:
+          Already have an account
+          <Link
+            className="font-medium ml-2 text-primary hover:underline"
+            to="/auth/login"
+
+          >
+            Login
+          </Link>
         </p>
       </div>
       <CommonForm
-        formControls={verifyFormControls}
-        buttonText={"Verify"}
+        formControls={reVerifyFormControls}
+        buttonText={"Send verification code"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
@@ -59,4 +67,4 @@ function AuthVerify() {
   );
 }
 
-export default AuthVerify;
+export default AuthEmailVerify;
