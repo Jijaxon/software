@@ -17,7 +17,7 @@ function ShoppingProductTile({
   const dispatch = useDispatch()
 
   const {user} = useSelector(state => state.auth)
-  const {wishlistItems} = useSelector(state => state.shopWishlist)
+  const {wishlistItems, isLoading} = useSelector(state => state.shopWishlist)
 
   function calculateSale() {
     return product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)
@@ -106,10 +106,12 @@ function ShoppingProductTile({
             </Button>
             <Button
               onClick={() => {
-                if (user) {
-                  toggleWishlist(product?._id)
-                } else {
-                  toast.error("You're not logged in!")
+                if (!isLoading) {
+                  if (user) {
+                    toggleWishlist(product?._id)
+                  } else {
+                    toast.error("You're not logged in!")
+                  }
                 }
               }}
               className="w-2/8"

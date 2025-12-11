@@ -1,40 +1,11 @@
-import {useState} from "react";
-import CommonForm from "../common/form";
-import {DialogContent} from "../ui/dialog";
-import {Label} from "../ui/label";
-import {Separator} from "../ui/separator";
-import {Badge} from "../ui/badge";
-import {useDispatch, useSelector} from "react-redux";
-import {getAllOrdersForAdmin, getOrderDetailsForAdmin, updateOrderStatus} from "@/store/admin/order-slice";
-import {toast} from "sonner";
+import { useSelector } from "react-redux";
+import { DialogContent } from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 
-const initialFormData = {
-  status: "",
-};
 
-function AdminOrderDetailsView({orderDetails}) {
-  const [formData, setFormData] = useState(initialFormData);
-  const {user} = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
-
-  function handleUpdateStatus(event) {
-    event.preventDefault();
-    const {status} = formData;
-
-    dispatch(
-      updateOrderStatus({id: orderDetails?._id, orderStatus: status})
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(getOrderDetailsForAdmin(orderDetails?._id));
-        dispatch(getAllOrdersForAdmin());
-        setFormData(initialFormData);
-        toast.success(
-          data?.payload?.message,
-        );
-      }
-    });
-  }
-
+function AdminOrderDetailsView({ orderDetails }) {
+  const { user } = useSelector((state) => state.auth);
   return (
     <DialogContent className="sm:max-w-[600px]">
       <div className="grid gap-6">
@@ -63,7 +34,7 @@ function AdminOrderDetailsView({orderDetails}) {
             <p className="font-medium">Payment Status</p>
             <Label>{orderDetails?.paymentStatus}</Label>
           </div>
-          <div className="flex mt-2 items-center justify-between">
+          {/*<div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Status</p>
             <Label>
               <Badge
@@ -78,7 +49,7 @@ function AdminOrderDetailsView({orderDetails}) {
                 {orderDetails?.orderStatus}
               </Badge>
             </Label>
-          </div>
+          </div>*/}
         </div>
         <Separator/>
         <div className="grid gap-4">
@@ -111,7 +82,7 @@ function AdminOrderDetailsView({orderDetails}) {
           </div>
         </div>
 
-        <div>
+        {/*<div>
           <CommonForm
             formControls={[
               {
@@ -132,7 +103,7 @@ function AdminOrderDetailsView({orderDetails}) {
             buttonText={"Update Order Status"}
             onSubmit={handleUpdateStatus}
           />
-        </div>
+        </div>*/}
       </div>
     </DialogContent>
   );
