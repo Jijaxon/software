@@ -27,6 +27,26 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const verifyUser = createAsyncThunk(
+  "/auth/verifyUser",
+
+  async (formData, thunkAPI) => {
+    try {
+      const {data} = await instance.post(
+        "/auth/verify",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
+
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "/auth/login",
 
@@ -131,6 +151,19 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(verifyUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(verifyUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(verifyUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;

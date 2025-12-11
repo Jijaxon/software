@@ -1,32 +1,31 @@
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useSearchParams} from "react-router-dom";
 import {useState} from "react";
 import CommonForm from "@/components/common/form.jsx";
-import {registerFormControls} from "@/config/index.js";
+import {verifyFormControls} from "@/config/index.js";
 import {useDispatch} from "react-redux";
-import {registerUser} from "@/store/auth-slice/index.js";
+import {verifyUser} from "@/store/auth-slice/index.js";
 import {toast} from "react-toastify";
 
 const initialState = {
-  username: '',
-  email: '',
-  password: '',
+  code: ""
 }
 
-function AuthRegister() {
+function AuthVerify() {
   const [formData, setFormData] = useState(initialState);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get("email");
+
 
   function onSubmit(event) {
     event.preventDefault();
-    dispatch(registerUser(formData)).then((data) => {
+    console.log(formData)
+    dispatch(verifyUser({email, code: formData.code})).then((data) => {
       if (data?.payload?.success) {
-        toast.success(data?.payload?.message || "Register successful!");
-        setTimeout(() => {
-          navigate("/auth/verify-email?email=" + formData.email);
-        }, 200)
-        // navigate("/auth/login");
+        toast.success(data?.payload?.message || "Verify successfully!");
+        navigate("/auth/login");
       } else {
         toast.error("User already exists! Please try again!", {
           variant: "destructive",
@@ -39,28 +38,19 @@ function AuthRegister() {
     });
   }
 
-  console.log(formData);
-
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create new account
+          Verify your email
         </h1>
         <p className="mt-2">
-          Already have an account
-          <Link
-            className="font-medium ml-2 text-primary hover:underline"
-            to="/auth/login"
-
-          >
-            Login
-          </Link>
+          We sent a verification code to <b>{email}</b>. Enter it below:
         </p>
       </div>
       <CommonForm
-        formControls={registerFormControls}
-        buttonText={"Sign Up"}
+        formControls={verifyFormControls}
+        buttonText={"Verify"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
@@ -69,4 +59,4 @@ function AuthRegister() {
   );
 }
 
-export default AuthRegister;
+export default AuthVerify;

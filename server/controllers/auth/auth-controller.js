@@ -1,12 +1,29 @@
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
+
+// email transporter (gmail misol)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+})
+
+// random code generator
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 //register
 const registerUser = async (req, res) => {
   try {
     console.log("Received body:", req.body);
     const { username, email, password } = req.body;
+
+    const code = generateCode()
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -23,15 +40,24 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // send verification email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Verify your account',
+      text: `Your verification code is: ${code}`
+    })
+
     const hashPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({ username, email, password: hashPassword });
+    const newUser = new User({ username, email, password: hashPassword, verify: false, verification_code: code });
     await newUser.save();
 
     res.status(200).json({
       success: true,
-      message: "Registered successfully",
+      message: "User registered. Check your email for verification code.",
     });
   } catch (e) {
+    if (e.code === '23505') return res.status(400).json({error: 'Email exists'})
     console.error("Register Error:", e.message);
     res.status(500).json({
       success: false,
@@ -39,6 +65,54 @@ const registerUser = async (req, res) => {
     });
   }
 };
+
+// verify
+const verifyUser = async (req, res) => {
+  const {email, code} = req.body
+
+  try {
+    const checkUser = await User.findOne({email});
+    if (!checkUser)
+      return res.json({
+        success: false,
+        message: "User doesn't exists! Please register first",
+      });
+
+    if (checkUser.verify)
+      return res.json({
+        success: false,
+        message: "User already verified!",
+      });
+
+    if (checkUser.verification_code !== code)
+      return res.json({
+        success: false,
+        message: "Invalid code!",
+      });
+
+    checkUser.verify = true
+    checkUser.verification_code = ""
+
+    await checkUser.save()
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: checkUser._id,
+        username: checkUser.username,
+        email: checkUser.email,
+        role: checkUser.role,
+        verify: checkUser.verify
+      },
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occured",
+    });
+  }
+}
 
 //login
 const loginUser = async (req, res) => {
@@ -50,6 +124,12 @@ const loginUser = async (req, res) => {
       return res.json({
         success: false,
         message: "User doesn't exists! Please register first",
+      });
+
+    if (!checkUser.verify)
+      return res.json({
+        success: false,
+        message: "Please verify your email!",
       });
 
     const checkPasswordMatch = await bcrypt.compare(
@@ -68,6 +148,7 @@ const loginUser = async (req, res) => {
         role: checkUser.role,
         email: checkUser.email,
         username: checkUser.username,
+        verify: checkUser.verify
       },
       "CLIENT_SECRET_KEY",
       {expiresIn: "4h"}
@@ -169,4 +250,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, updateProfile, logoutUser, authMiddleware };
+module.exports = { registerUser, loginUser, updateProfile, logoutUser, authMiddleware, verifyUser };

@@ -18,7 +18,15 @@ const UserScheme=new mongoose.Schema({
   role:{
     type:String,
     default:"user",
-  }
+  },
+  verify: {
+    type: Boolean,
+    default: false
+  },
+  verification_code: {
+    type: String,
+    default: ""
+  },
 });
 const User=mongoose.model('User',UserScheme);
 module.exports=User;

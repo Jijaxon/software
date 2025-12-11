@@ -22,6 +22,16 @@ export const registerFormControls = [
   },
 ];
 
+export const verifyFormControls = [
+  {
+    name: "code",
+    label: "Code",
+    placeholder: "Enter your code",
+    componentType: "input",
+    type: "number",
+  },
+]
+
 export const loginFormControls = [
   {
     name: "email",
