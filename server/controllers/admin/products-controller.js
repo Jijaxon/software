@@ -1,4 +1,5 @@
-const Product = require("../../models/Product");
+const { pool } = require("../../db");
+const { toRecord, toRecords } = require("../../db/records");
 const {deleteFiles} = require("../../middleware/upload");
 
 //add a new product
@@ -22,19 +23,11 @@ const addProduct = async (req, res) => {
       imagePath = `/uploads/products/${req.file.filename}`;
     }
 
-    const newlyCreatedProduct = new Product({
-      image: imagePath,
-      title,
-      description,
-      category,
-      brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-    });
-
-    await newlyCreatedProduct.save();
+    const newlyCreatedProduct = toRecord((await pool.query(
+      `INSERT INTO products (image, title, description, category, brand, price, sale_price, total_stock, average_review)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [imagePath, title, description, category, brand, price, salePrice, totalStock, averageReview]
+    )).rows[0]);
     res.status(201).json({
       success: true,
       data: newlyCreatedProduct,
@@ -52,7 +45,7 @@ const addProduct = async (req, res) => {
 
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({});
+    const listOfProducts = toRecords((await pool.query('SELECT * FROM products ORDER BY created_at DESC')).rows);
     res.status(200).json({
       success: true,
       data: listOfProducts,
@@ -81,7 +74,7 @@ const editProduct = async (req, res) => {
       averageReview,
     } = req.body;
 
-    let findProduct = await Product.findById(id);
+    let findProduct = toRecord((await pool.query('SELECT * FROM products WHERE id = $1', [id])).rows[0]);
     if (!findProduct) {
       return res.status(404).json({
         success: false,
@@ -102,17 +95,15 @@ const editProduct = async (req, res) => {
       findProduct.image = newImagePath;
     }
 
-    findProduct.title = title || findProduct.title;
-    findProduct.description = description || findProduct.description;
-    findProduct.category = category || findProduct.category;
-    findProduct.brand = brand || findProduct.brand;
-    findProduct.price = price === "" ? 0 : price || findProduct.price;
-    findProduct.salePrice =
-      salePrice === "" ? 0 : salePrice || findProduct.salePrice;
-    findProduct.totalStock = totalStock || findProduct.totalStock;
-    findProduct.averageReview = averageReview || findProduct.averageReview;
-
-    await findProduct.save();
+    findProduct = toRecord((await pool.query(
+      `UPDATE products SET image = $1, title = $2, description = $3, category = $4, brand = $5,
+       price = $6, sale_price = $7, total_stock = $8, average_review = $9, updated_at = NOW()
+       WHERE id = $10 RETURNING *`,
+      [newImagePath || findProduct.image, title || findProduct.title, description || findProduct.description,
+        category || findProduct.category, brand || findProduct.brand,
+        price === "" ? 0 : price || findProduct.price, salePrice === "" ? 0 : salePrice || findProduct.salePrice,
+        totalStock ?? findProduct.totalStock, averageReview ?? findProduct.averageReview, id]
+    )).rows[0]);
     res.status(200).json({
       success: true,
       data: findProduct,
@@ -131,7 +122,7 @@ const deleteProduct = async (req, res) => {
   try {
     const {id} = req.params;
 
-    const product = await Product.findById(id);
+    const product = toRecord((await pool.query('SELECT * FROM products WHERE id = $1', [id])).rows[0]);
 
     if (!product) {
       return res.status(404).json({
@@ -148,7 +139,7 @@ const deleteProduct = async (req, res) => {
       await deleteFiles(filePaths);
     }
 
-    await Product.findByIdAndDelete(id);
+    await pool.query('DELETE FROM products WHERE id = $1', [id]);
 
     res.status(200).json({
       success: true,

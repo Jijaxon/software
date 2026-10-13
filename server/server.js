@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express')
-const mongoose = require('mongoose')
 const path = require('path')
+const { pool, initializeDatabase } = require('./db')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const authRouter = require('./routes/auth/auth-routs');
@@ -21,15 +21,6 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 const dashboardRouter = require("./routes/dashboard/dashboard-routes")
 
 const wishlistRouter = require("./routes/shop/wishlist-routes")
-
-// database connection
-mongoose
-	.connect(
-    'mongodb+srv://azizasalimova098_db_user:Az!zaxon1949@cluster0.xmnc5y8.mongodb.net/ecommerce?retryWrites=true&w=majority'
-    // 'mongodb+srv://azizasalimova098_db_user:azizasalimova098_db_user@cluster0.xmnc5y8.mongodb.net/'
-	)
-	.then(() => console.log('MongoDB connected'))
-	.catch(error => console.log(error))
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -73,4 +64,14 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.get('/', (req,res) => res.status(200).json({ ok: true }))
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+initializeDatabase()
+	.then(() => {
+		console.log('PostgreSQL connected and tables are ready')
+		app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+	})
+	.catch(async (error) => {
+		console.error('PostgreSQL startup failed:', error.message)
+		await pool.end()
+		process.exit(1)
+	})

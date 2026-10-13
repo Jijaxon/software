@@ -1,4 +1,5 @@
-const Product = require("../../models/Product");
+const { pool } = require("../../db");
+const { toRecord, toRecords } = require("../../db/records");
 
 // const getFilteredProducts = async (req, res) => {
 //   try {
@@ -60,40 +61,40 @@ const getFilteredProducts = async (req, res) => {
     // Querylarni string sifatida olamiz va agar bo'sh bo'lsa "" qabul qilamiz
     let { category = "", brand = "", sortBy = "price-lowtohigh" } = req.query;
 
-    let filters = {};
-
-    // category bo'sh bo'lmasa, split qilib arrayga aylantiramiz
+    const conditions = [];
+    const params = [];
     if (category) {
-      filters.category = { $in: category.split(",") };
+      params.push(category.split(","));
+      conditions.push(`category = ANY($${params.length}::text[])`);
     }
-
-    // brand bo'sh bo'lmasa, split qilib arrayga aylantiramiz
     if (brand) {
-      filters.brand = { $in: brand.split(",") };
+      params.push(brand.split(","));
+      conditions.push(`brand = ANY($${params.length}::text[])`);
     }
-
-    // sortni aniqlash
-    let sort = {};
+    let sort;
     switch (sortBy) {
       case "price-lowtohigh":
-        sort.price = 1;
+        sort = 'price ASC';
         break;
       case "price-hightolow":
-        sort.price = -1;
+        sort = 'price DESC';
         break;
       case "title-atoz":
-        sort.title = 1;
+        sort = 'title ASC';
         break;
       case "title-ztoa":
-        sort.title = -1;
+        sort = 'title DESC';
         break;
       default:
-        sort.price = 1;
+        sort = 'price ASC';
         break;
     }
 
     // ma'lumotlarni filtr va sort bilan olish
-    const products = await Product.find(filters).sort(sort);
+    const products = toRecords((await pool.query(
+      `SELECT * FROM products ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''} ORDER BY ${sort}`,
+      params
+    )).rows);
 
     res.status(200).json({
       success: true,
@@ -112,7 +113,7 @@ const getFilteredProducts = async (req, res) => {
 const getProductDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
+    const product = toRecord((await pool.query('SELECT * FROM products WHERE id = $1', [id])).rows[0]);
 
     if (!product)
       return res.status(404).json({

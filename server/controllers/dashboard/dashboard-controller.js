@@ -1,79 +1,29 @@
-const User = require("../../models/User");
-const Product = require("../../models/Product");
-const Order = require("../../models/Order");
+const { pool } = require("../../db");
 
 async function dashboard(req, res) {
   try {
-    // USERS
-    const totalUsers = await User.countDocuments();
-
-    // PRODUCTS
-    const totalProducts = await Product.countDocuments();
-
-    // ORDERS
-    const totalOrders = await Order.countDocuments();
-
-    // REVENUE (faqat paid buyurtmalar)
-    const paidOrders = await Order.find({ paymentStatus: "paid" });
-    const totalRevenue = paidOrders.reduce(
-      (sum, order) => sum + (order.totalAmount || 0),
-      0
+    const totals = (await pool.query(
+      `SELECT (SELECT COUNT(*) FROM users)::int AS total_users,
+       (SELECT COUNT(*) FROM products)::int AS total_products,
+       (SELECT COUNT(*) FROM orders)::int AS total_orders,
+       COALESCE((SELECT SUM(total_amount) FROM orders WHERE payment_status = 'paid'), 0)::float AS total_revenue`
+    )).rows[0];
+    const statuses = await pool.query(
+      'SELECT order_status AS _id, COUNT(*)::int AS count FROM orders GROUP BY order_status'
+    );
+    const sales = await pool.query(
+      `SELECT TO_CHAR(MAKE_DATE(2000, EXTRACT(MONTH FROM order_date)::int, 1), 'FMMonth') AS "monthName",
+       SUM(total_amount)::float AS "totalSales" FROM orders WHERE order_date IS NOT NULL
+       GROUP BY EXTRACT(MONTH FROM order_date) ORDER BY EXTRACT(MONTH FROM order_date)`
     );
 
-    // ORDER STATUS COUNT
-    const ordersByStatus = await Order.aggregate([
-      { $group: { _id: "$orderStatus", count: { $sum: 1 } } },
-    ]);
-
-    // MONTHLY SALES (monthName + totalSales ONLY)
-    const monthlySales = await Order.aggregate([
-      {
-        $group: {
-          _id: { $month: "$orderDate" },
-          totalSales: { $sum: "$totalAmount" },
-        },
-      },
-      { $sort: { "_id": 1 } },
-      {
-        $addFields: {
-          monthName: {
-            $arrayElemAt: [
-              [
-                "",
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-              ],
-              "$_id",
-            ],
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,       // REMOVE _id
-          monthName: 1, // KEEP month
-          totalSales: 1 // KEEP total sales
-        },
-      },
-    ]);
-
     res.status(200).json({
-      totalUsers,
-      totalProducts,
-      totalOrders,
-      totalRevenue,
-      ordersByStatus,
-      monthlySales,
+      totalUsers: totals.total_users,
+      totalProducts: totals.total_products,
+      totalOrders: totals.total_orders,
+      totalRevenue: totals.total_revenue,
+      ordersByStatus: statuses.rows,
+      monthlySales: sales.rows,
     });
   } catch (error) {
     console.error(error);

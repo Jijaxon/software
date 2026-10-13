@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken');
-const User = require('../../models/User');
+const { pool } = require('../../db');
+const { toRecord } = require('../../db/records');
 
 // email transporter (gmail misol)
 const transporter = nodemailer.createTransport({
@@ -32,7 +33,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const checkUser = await User.findOne({ email });
+    const checkUser = toRecord((await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]);
     if (checkUser) {
       return res.json({
         success: false,
@@ -49,8 +50,10 @@ const registerUser = async (req, res) => {
     })
 
     const hashPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({ username, email, password: hashPassword, verify: false, verification_code: code });
-    await newUser.save();
+    await pool.query(
+      'INSERT INTO users (username, email, password, verify, verification_code) VALUES ($1, $2, $3, FALSE, $4)',
+      [username, email, hashPassword, code]
+    );
 
     res.status(200).json({
       success: true,
@@ -71,14 +74,13 @@ const verifyUser = async (req, res) => {
   const {email, code} = req.body
 
   try {
-    const checkUser = await User.findOne({email});
+    const checkUser = toRecord((await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]);
     if (!checkUser)
       return res.json({
         success: false,
         message: "User doesn't exists! Please register first",
       });
 
-    if (checkUser.verify)
       return res.json({
         success: false,
         message: "User already verified!",
@@ -90,19 +92,19 @@ const verifyUser = async (req, res) => {
         message: "Invalid code!",
       });
 
-    checkUser.verify = true
-    checkUser.verification_code = ""
-
-    await checkUser.save()
+    const updatedUser = toRecord((await pool.query(
+      "UPDATE users SET verify = TRUE, verification_code = '', updated_at = NOW() WHERE id = $1 RETURNING *",
+      [checkUser.id]
+    )).rows[0]);
     res.json({
       success: true,
       message: "Profile updated successfully",
       user: {
-        id: checkUser._id,
-        username: checkUser.username,
-        email: checkUser.email,
-        role: checkUser.role,
-        verify: checkUser.verify
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        verify: updatedUser.verify
       },
     });
   } catch (e) {
@@ -119,7 +121,7 @@ const resendVerificationCode = async (req, res) => {
   const {email} = req.body
 
   try {
-    const checkUser = await User.findOne({email});
+    const checkUser = toRecord((await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]);
     if (!checkUser)
       return res.json({
         success: false,
@@ -142,9 +144,7 @@ const resendVerificationCode = async (req, res) => {
       text: `Your verification code is: ${code}`
     })
 
-    checkUser.verification_code = code
-
-    await checkUser.save()
+    await pool.query('UPDATE users SET verification_code = $1, updated_at = NOW() WHERE id = $2', [code, checkUser.id]);
     res.json({
       success: true,
       message: "Verification code resent to email",
@@ -163,7 +163,7 @@ const loginUser = async (req, res) => {
   const {email, password} = req.body;
 
   try {
-    const checkUser = await User.findOne({email});
+    const checkUser = toRecord((await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]);
     if (!checkUser)
       return res.json({
         success: false,
@@ -188,7 +188,7 @@ const loginUser = async (req, res) => {
 
     const token = jwt.sign(
       {
-        id: checkUser._id,
+        id: checkUser.id,
         role: checkUser.role,
         email: checkUser.email,
         username: checkUser.username,
@@ -204,7 +204,7 @@ const loginUser = async (req, res) => {
       user: {
         email: checkUser.email,
         role: checkUser.role,
-        id: checkUser._id,
+        id: checkUser.id,
         username: checkUser.username,
       },
     });
@@ -224,7 +224,7 @@ const updateProfile = async (req, res) => {
     const { username, email, password } = req.body;
 
     // Foydalanuvchini topish
-    const user = await User.findById(userId);
+    const user = toRecord((await pool.query('SELECT * FROM users WHERE id = $1', [userId])).rows[0]);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -233,25 +233,20 @@ const updateProfile = async (req, res) => {
     }
 
     // Yangilanish bo'yicha tekshirishlar
-    if (username) user.username = username;
-    if (email) user.email = email;
-
-    // Agar parol o'zgartirilayotgan bo'lsa
-    if (password) {
-      const hashed = await bcrypt.hash(password, 12);
-      user.password = hashed;
-    }
-
-    await user.save();
+    const hashed = password ? await bcrypt.hash(password, 12) : user.password;
+    const updatedUser = toRecord((await pool.query(
+      'UPDATE users SET username = $1, email = $2, password = $3, updated_at = NOW() WHERE id = $4 RETURNING *',
+      [username || user.username, email || user.email, hashed, userId]
+    )).rows[0]);
 
     res.json({
       success: true,
       message: "Profile updated successfully",
       user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
       },
     });
 

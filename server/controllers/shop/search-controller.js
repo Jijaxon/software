@@ -1,4 +1,5 @@
-const Product = require("../../models/Product");
+const { pool } = require("../../db");
+const { toRecords } = require("../../db/records");
 
 const searchProducts = async (req, res) => {
   try {
@@ -10,18 +11,10 @@ const searchProducts = async (req, res) => {
       });
     }
 
-    const regEx = new RegExp(keyword, "i");
-
-    const createSearchQuery = {
-      $or: [
-        { title: regEx },
-        { description: regEx },
-        { category: regEx },
-        { brand: regEx },
-      ],
-    };
-
-    const searchResults = await Product.find(createSearchQuery);
+    const searchResults = toRecords((await pool.query(
+      `SELECT * FROM products WHERE title ILIKE $1 OR description ILIKE $1 OR category ILIKE $1 OR brand ILIKE $1`,
+      [`%${keyword.replace(/[\\%_]/g, '\\$&')}%`]
+    )).rows);
 
     res.status(200).json({
       success: true,

@@ -1,5 +1,5 @@
-const Feature = require("../../models/Feature");
-const Product = require("../../models/Product");
+const { pool } = require("../../db");
+const { toRecord, toRecords } = require("../../db/records");
 const {deleteFiles} = require("../../middleware/upload");
 
 const addFeatureImage = async (req, res) => {
@@ -10,11 +10,9 @@ const addFeatureImage = async (req, res) => {
       imagePath = `/uploads/banners/${req.file.filename}`;
     }
 
-    const featureImages = new Feature({
-      image: imagePath,
-    });
-
-    await featureImages.save();
+    const featureImages = toRecord((await pool.query(
+      'INSERT INTO features (image) VALUES ($1) RETURNING *', [imagePath]
+    )).rows[0]);
 
     res.status(201).json({
       success: true,
@@ -31,7 +29,7 @@ const addFeatureImage = async (req, res) => {
 
 const getFeatureImages = async (req, res) => {
   try {
-    const images = await Feature.find({});
+    const images = toRecords((await pool.query('SELECT * FROM features ORDER BY created_at DESC')).rows);
 
     res.status(200).json({
       success: true,
@@ -50,7 +48,7 @@ const deleteFeatureImage = async (req, res) => {
   try {
     const {id} = req.params;
 
-    const image = await Feature.findById(id);
+    const image = toRecord((await pool.query('SELECT * FROM features WHERE id = $1', [id])).rows[0]);
 
     if (!image) {
       return res.status(404).json({
@@ -63,7 +61,7 @@ const deleteFeatureImage = async (req, res) => {
       await deleteFiles([image?.image]);
     }
 
-    await Feature.findByIdAndDelete(id);
+    await pool.query('DELETE FROM features WHERE id = $1', [id]);
 
     res.status(200).json({
       success: true,
