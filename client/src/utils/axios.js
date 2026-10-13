@@ -2,7 +2,8 @@ import axios from "axios";
 import {toast} from "react-toastify";
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
+  withCredentials: true,
   timeout: 20000,
 });
 
