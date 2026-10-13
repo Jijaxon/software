@@ -5,13 +5,13 @@ const { pool } = require('../../db');
 const { toRecord } = require('../../db/records');
 
 // email transporter (gmail misol)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-})
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS
+//   }
+// })
 
 // random code generator
 function generateCode() {
@@ -42,12 +42,14 @@ const registerUser = async (req, res) => {
     }
 
     // send verification email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Verify your account',
-      text: `Your verification code is: ${code}`
-    })
+    // await transporter.sendMail({
+    //   from: process.env.EMAIL_USER,
+    //   to: email,
+    //   subject: 'Verify your account',
+    //   text: `Your verification code is: ${code}`
+    // })
+
+    console.log("======code: " + code);
 
     const hashPassword = await bcrypt.hash(password, 12);
     await pool.query(
@@ -75,18 +77,23 @@ const verifyUser = async (req, res) => {
 
   try {
     const checkUser = toRecord((await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]);
+    console.log(checkUser);
+    console.log(typeof code)
+    console.log(checkUser.verificationCode);
     if (!checkUser)
       return res.json({
         success: false,
         message: "User doesn't exists! Please register first",
       });
 
+    if (checkUser.verify) {
       return res.json({
         success: false,
         message: "User already verified!",
       });
+    }
 
-    if (checkUser.verification_code !== code)
+    if (checkUser.verificationCode !== code)
       return res.json({
         success: false,
         message: "Invalid code!",
@@ -137,12 +144,14 @@ const resendVerificationCode = async (req, res) => {
     const code = generateCode()
 
     // send verification email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Verify your account',
-      text: `Your verification code is: ${code}`
-    })
+    // await transporter.sendMail({
+    //   from: process.env.EMAIL_USER,
+    //   to: email,
+    //   subject: 'Verify your account',
+    //   text: `Your verification code is: ${code}`
+    // })
+
+    console.log("Verification code:", code);
 
     await pool.query('UPDATE users SET verification_code = $1, updated_at = NOW() WHERE id = $2', [code, checkUser.id]);
     res.json({
