@@ -1,4 +1,4 @@
-import {ArrowUpDownIcon, HeartIcon, HousePlug, LogOut, Menu, ShoppingCart, UserCog} from "lucide-react";
+import {HeartIcon, LogOut, Menu, Search, ShoppingCart, Sparkles, UserCog} from "lucide-react";
 import {Link, useLocation, useNavigate, useSearchParams,} from "react-router-dom";
 import {Sheet, SheetContent, SheetTrigger} from "../ui/sheet";
 import {Button} from "../ui/button";
@@ -30,8 +30,7 @@ function MenuItems() {
     sessionStorage.removeItem("filters");
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
-      getCurrentMenuItem.id !== "products" &&
-      getCurrentMenuItem.id !== "notebooks" &&
+      getCurrentMenuItem.id !== "all-products" &&
       getCurrentMenuItem.id !== "about_us" &&
       getCurrentMenuItem.id !== "search"
         ? {
@@ -49,11 +48,11 @@ function MenuItems() {
   }
 
   return (
-    <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
+    <nav className="mb-3 flex flex-col gap-6 lg:mb-0 lg:flex-row lg:items-center lg:gap-4 xl:gap-6">
       {shoppingViewHeaderMenuItems.map((menuItem) => (
         <Label
           onClick={() => handleNavigate(menuItem)}
-          className="text-sm font-medium cursor-pointer"
+          className={`cursor-pointer whitespace-nowrap text-sm font-medium ${menuItem.id === "home" || menuItem.id === "search" || menuItem.id === "about_us" ? "lg:hidden" : ""}`}
           key={menuItem.id}
         >
           {menuItem.label}
@@ -83,6 +82,15 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
+      <Button
+        onClick={() => navigate("/shop/search")}
+        variant="outline"
+        size="icon"
+        title="Qidiruv"
+        aria-label="Qidiruv"
+      >
+        <Search className="h-5 w-5"/>
+      </Button>
       <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
         <Button
           onClick={() => setOpenCartSheet(true)}
@@ -142,12 +150,12 @@ function HeaderRightContent() {
             <DropdownMenuSeparator/>
             <DropdownMenuItem onClick={() => navigate("/shop/account")}>
               <UserCog className="mr-2 h-4 w-4"/>
-              Account
+              Profilim
             </DropdownMenuItem>
             <DropdownMenuSeparator/>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4"/>
-              Logout
+              Chiqish
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -159,7 +167,7 @@ function HeaderRightContent() {
             className="flex items-center gap-1"
             onClick={() => navigate("/auth/login")}
           >
-            Login
+            Kirish
           </Button>
           <Button
             variant="outline"
@@ -167,7 +175,7 @@ function HeaderRightContent() {
             className="flex items-center gap-1"
             onClick={() => navigate("/auth/register")}
           >
-            Register
+            Ro'yxatdan o'tish
           </Button>
         </>
       )}
@@ -176,15 +184,12 @@ function HeaderRightContent() {
 }
 
 function ShoppingHeader() {
-  const {isAuthenticated} = useSelector((state) => state.auth);
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        <Link to="/shop/home" className="flex items-center gap-2">
-          <HousePlug className="h-6 w-6"/>
-          {/*keyingi avlod noutbuklari*/}
-          <span className="font-bold">NextNote</span>
+      <div className="flex h-16 items-center justify-between gap-5 px-4 md:gap-7 md:px-6">
+        <Link to="/shop/home" className="flex shrink-0 items-center gap-2">
+          <Sparkles className="h-6 w-6 text-[#9b725a]"/>
+          <span className="font-serif text-xl font-semibold tracking-wide">NAFIS</span>
         </Link>
         <Sheet>
           <SheetTrigger asChild>
@@ -198,11 +203,11 @@ function ShoppingHeader() {
             <HeaderRightContent/>
           </SheetContent>
         </Sheet>
-        <div className="hidden lg:block">
+        <div className="hidden flex-1 justify-center lg:flex">
           <MenuItems/>
         </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden shrink-0 lg:block">
           <HeaderRightContent/>
         </div>
       </div>

@@ -6,29 +6,23 @@ const About = () => {
     <div className="px-12 py-10">
       <div className="font-bold text-lg leading-relaxed text-justify mb-10">
         <p className="mb-4">
-          <span className="text-blue-600 font-extrabold">NextNote</span> — sizning ishonchli noutbuk va
-          aksessuarlar do‘koningiz!
+          <span className="font-extrabold text-[#8b4f3f]">NAFIS</span> — go'zallik va o'ziga mehr bilan qarash uchun tanlangan manzil.
         </p>
         <p className="mb-4">
-          Bizning maqsadimiz — har bir foydalanuvchiga sifatli, zamonaviy va ishonchli texnologiyalarni
-          taklif qilishdir. HP, Dell, Lenovo, Asus, Acer va Apple kabi yetakchi brendlarning eng so‘nggi
-          modellari bizda mavjud.
+          Biz yuz va soch parvarishi, makiyaj hamda atirlar bo'yicha kundalik ehtiyojingizga mos mahsulotlarni jamlaymiz. CeraVe, The Ordinary, L'Oréal Paris, Maybelline, Dior va Fenty Beauty kabi sevimli brendlaringizni topishingiz mumkin.
         </p>
         <p className="mb-4">
-          Talaba bo‘lasizmi, dizaynermi yoki geymer — siz uchun mos noutbuk albatta topiladi. Biz tezkor
-          yetkazib berish, qulay to‘lov tizimi va do‘stona qo‘llab-quvvatlash xizmati orqali xaridingizni
-          osonlashtiramiz.
+          NAFIS'da xarid qilish sodda: kerakli mahsulotni tanlang, savatga qo'shing va buyurtmani rasmiylashtiring. Savollar bo'lsa, biz bilan bog'laning.
         </p>
         <p>
-          <span className="text-blue-600 font-extrabold">NextNote</span> — bu faqat do‘kon emas, bu sizning
-          texnologiyadagi ishonchli hamkoringiz.
+          <span className="font-extrabold text-[#8b4f3f]">NAFIS</span> — har kungi go'zallik marosimingiz uchun.
         </p>
       </div>
 
       {/* Telegram bo‘limi */}
       <div className="text-center mt-10">
         <p className="font-semibold text-lg mb-4">
-          Have questions? Contact us directly on Telegram!
+          Savollaringiz bormi? Telegram orqali bog'laning.
         </p>
         <a
           href="https://t.me/moonlightt5"
@@ -37,7 +31,7 @@ const About = () => {
           className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-700 font-medium transition-colors duration-200"
         >
           <Send className="w-6 h-6" />
-          Message us on Telegram
+          Telegram'da yozish
         </a>
       </div>
     </div>

@@ -59,30 +59,30 @@ export const loginFormControls = [
   },
 ];
 
-// Notebook qo‘shish formasi
+// Mahsulot qo‘shish formasi
 export const addProductFormElements = [
   {
-    label: "Model",
+    label: "Mahsulot nomi",
     name: "title",
     componentType: "input",
     type: "text",
-    placeholder: "Enter notebook model (e.g. HP Pavilion 15)",
+    placeholder: "Mahsulot nomini kiriting",
   },
   {
     label: "Description",
     name: "description",
     componentType: "textarea",
-    placeholder: "Enter notebook description and specifications",
+    placeholder: "Mahsulot haqida ma'lumot kiriting",
   },
   {
     label: "Category",
     name: "category",
     componentType: "select",
     options: [
-      {id: "gaming", label: "Gaming"},
-      {id: "business", label: "Business"},
-      {id: "student", label: "Student"},
-      {id: "accessories", label: "Accessories"},
+      {id: "skincare", label: "Yuz parvarishi"},
+      {id: "makeup", label: "Makiyaj"},
+      {id: "fragrance", label: "Atirlar"},
+      {id: "haircare", label: "Soch parvarishi"},
     ],
   },
   {
@@ -90,12 +90,12 @@ export const addProductFormElements = [
     name: "brand",
     componentType: "select",
     options: [
-      {id: "hp", label: "HP"},
-      {id: "dell", label: "Dell"},
-      {id: "lenovo", label: "Lenovo"},
-      {id: "asus", label: "Asus"},
-      {id: "acer", label: "Acer"},
-      {id: "apple", label: "Apple"},
+      {id: "cerave", label: "CeraVe"},
+      {id: "the-ordinary", label: "The Ordinary"},
+      {id: "loreal", label: "L'Oréal Paris"},
+      {id: "maybelline", label: "Maybelline"},
+      {id: "dior", label: "Dior"},
+      {id: "fenty-beauty", label: "Fenty Beauty"},
     ],
   },
   {
@@ -103,69 +103,66 @@ export const addProductFormElements = [
     name: "price",
     componentType: "input",
     type: "number",
-    placeholder: "Enter notebook price",
+    placeholder: "Mahsulot narxini kiriting",
   },
   {
     label: "Discount Percentage (%)",
     name: "salePrice",
     componentType: "input",
     type: "number",
-    placeholder: "Enter discount price (optional)",
+    placeholder: "Chegirma foizini kiriting (ixtiyoriy)",
   },
   {
     label: "Stock Quantity",
     name: "totalStock",
     componentType: "input",
     type: "number",
-    placeholder: "Enter available stock",
+    placeholder: "Mavjud mahsulot soni",
   },
 ];
 
 // Navigation menyu
 export const shoppingViewHeaderMenuItems = [
-  {id: "home", label: "Home", path: "/shop/home"},
-  {id: "notebooks", label: "All products", path: "/shop/listing"},
-  {id: "gaming", label: "Gaming Laptops", path: "/shop/listing"},
-  {id: "business", label: "Business Laptops", path: "/shop/listing"},
-  {id: "student", label: "Student Laptops", path: "/shop/listing"},
-  {id: "accessories", label: "Accessories", path: "/shop/listing"},
-  {id: "search", label: "Search", path: "/shop/search"},
-  {id: "about_us", label: "About us", path: "/shop/about"},
+  {id: "home", label: "Bosh sahifa", path: "/shop/home"},
+  {id: "all-products", label: "Barcha mahsulotlar", path: "/shop/listing"},
+  {id: "skincare", label: "Yuz parvarishi", path: "/shop/listing"},
+  {id: "makeup", label: "Makiyaj", path: "/shop/listing"},
+  {id: "fragrance", label: "Atirlar", path: "/shop/listing"},
+  {id: "haircare", label: "Soch parvarishi", path: "/shop/listing"},
+  {id: "search", label: "Qidiruv", path: "/shop/search"},
+  {id: "about_us", label: "Biz haqimizda", path: "/shop/about"},
 ];
 
-// Kategoriya xaritasi
 export const categoryOptionsMap = {
-  gaming: "Gaming",
-  business: "Business",
-  student: "Student",
-  accessories: "Accessories",
+  skincare: "Yuz parvarishi",
+  makeup: "Makiyaj",
+  fragrance: "Atirlar",
+  haircare: "Soch parvarishi",
 };
 
-// Brend xaritasi
 export const brandOptionsMap = {
-  hp: "HP",
-  dell: "Dell",
-  lenovo: "Lenovo",
-  asus: "Asus",
-  acer: "Acer",
-  apple: "Apple",
+  cerave: "CeraVe",
+  "the-ordinary": "The Ordinary",
+  loreal: "L'Oréal Paris",
+  maybelline: "Maybelline",
+  dior: "Dior",
+  "fenty-beauty": "Fenty Beauty",
 };
 
-// Filterlar uchun variantlar
 export const filterOptions = {
   category: [
-    {id: "gaming", label: "Gaming"},
-    {id: "business", label: "Business"},
-    {id: "student", label: "Student"},
-    {id: "accessories", label: "Accessories"},
+    {id: "skincare", label: "Yuz parvarishi"},
+    {id: "makeup", label: "Makiyaj"},
+    {id: "fragrance", label: "Atirlar"},
+    {id: "haircare", label: "Soch parvarishi"},
   ],
   brand: [
-    {id: "hp", label: "HP"},
-    {id: "dell", label: "Dell"},
-    {id: "lenovo", label: "Lenovo"},
-    {id: "asus", label: "Asus"},
-    {id: "acer", label: "Acer"},
-    {id: "apple", label: "Apple"},
+    {id: "cerave", label: "CeraVe"},
+    {id: "the-ordinary", label: "The Ordinary"},
+    {id: "loreal", label: "L'Oréal Paris"},
+    {id: "maybelline", label: "Maybelline"},
+    {id: "dior", label: "Dior"},
+    {id: "fenty-beauty", label: "Fenty Beauty"},
   ],
 };
 
@@ -173,8 +170,8 @@ export const filterOptions = {
 export const sortOptions = [
   {id: "price-lowtohigh", label: "Price: Low to High"},
   {id: "price-hightolow", label: "Price: High to Low"},
-  {id: "title-atoz", label: "Model: A to Z"},
-  {id: "title-ztoa", label: "Model: Z to A"},
+  {id: "title-atoz", label: "Nomi: A dan Z gacha"},
+  {id: "title-ztoa", label: "Nomi: Z dan A gacha"},
 ];
 
 // Yetkazib berish (address formasi)

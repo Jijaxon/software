@@ -20,89 +20,79 @@ function ShoppingProductTile({
   const {wishlistItems, isLoading} = useSelector(state => state.shopWishlist)
 
   function calculateSale() {
-    return product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)
+    return (product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)).toFixed(2)
   }
 
   function toggleWishlist(productId) {
     if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.error("Product removed wishlist")
+        toast.info("Mahsulot istaklar ro'yxatidan olib tashlandi")
       })
     } else {
       dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.success("Product added wishlist")
+        toast.success("Mahsulot istaklar ro'yxatiga qo'shildi")
       })
     }
   }
 
   return (
-    <Card className="w-full max-w-sm mx-auto relative overflow-hidden">
+    <Card className="relative mx-auto w-full max-w-sm overflow-hidden rounded-sm border-[#e8dfd7] bg-white shadow-none">
       <div onClick={() => handleGetProductDetails(product?._id)}>
         <div className="relative">
           <img
             src={instance.defaults.baseURL + product?.image}
             alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
+            className="h-[300px] w-full cursor-pointer object-cover"
           />
-          {user && (
-            <div className={"absolute w-full top-2 p-2 flex justify-between"}>
-              <Badge className="bg-red-500 hover:bg-red-600">
-                {`Only ${product?.totalStock} items left`}
-              </Badge>
-              {product?.salePrice > 0 && (
-                <Badge className="bg-red-500 hover:bg-red-600">
-                  Sale {product?.salePrice}%
-                </Badge>
-              )}
+          {(product?.salePrice > 0 || product?.totalStock < 5) && (
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+              {product?.salePrice > 0 && <Badge className="rounded-sm bg-[#8b4f3f] hover:bg-[#8b4f3f]">-{product.salePrice}%</Badge>}
+              {product?.totalStock > 0 && product?.totalStock < 5 && <Badge className="rounded-sm bg-white text-[#493f38] hover:bg-white">Faqat {product.totalStock} ta</Badge>}
             </div>
           )}
         </div>
-        <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">
-              {categoryOptionsMap[product?.category]}
-            </span>
-            <span className="text-[16px] text-muted-foreground">
-              {brandOptionsMap[product?.brand]}
-            </span>
+        <CardContent className="p-4 pb-2">
+          <h2 className="mb-2 line-clamp-2 min-h-12 cursor-pointer text-base font-semibold text-[#29241f]">{product?.title}</h2>
+          <div className="mb-3 flex items-center justify-between gap-2 text-xs text-[#82776f]">
+            <span>{categoryOptionsMap[product?.category] || product?.category}</span>
+            <span className="truncate text-right">{brandOptionsMap[product?.brand] || product?.brand}</span>
           </div>
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex min-h-8 items-center gap-2">
             <span
               className={`${
                 product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
+              } text-sm text-[#82776f]`}
             >
-              ${product?.price}
+              ${Number(product?.price).toFixed(2)}
             </span>
             {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
+              <span className="text-base font-semibold text-[#8b4f3f]">
                 ${calculateSale()}
               </span>
             ) : null}
           </div>
         </CardContent>
       </div>
-      <CardFooter>
+      <CardFooter className="gap-2 px-4 pb-4 pt-2">
         {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
-            Out Of Stock
+          <Button disabled className="w-full rounded-sm bg-[#d5cec7] text-[#5d554f]">
+            Sotuvda yo'q
           </Button>
         ) : (
-          <div className={"flex items-center justify-between w-full"}>
+          <div className="flex w-full items-center gap-2">
             <Button
               onClick={() => {
                 if (user) {
                   handleAddtoCart(product?._id, product?.totalStock)
                 } else {
-                  toast.error("You're not logged in!")
+                  toast.error("Xarid qilish uchun tizimga kiring")
                 }
               }}
-              className="w-2/3"
+              className="h-10 w-full rounded-sm bg-[#493f38] text-white hover:bg-[#68574b]"
             >
-              Add to cart
+              Savatga qo'shish
             </Button>
             <Button
               onClick={() => {
@@ -110,16 +100,19 @@ function ShoppingProductTile({
                   if (user) {
                     toggleWishlist(product?._id)
                   } else {
-                    toast.error("You're not logged in!")
+                    toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
                   }
                 }
               }}
-              className="w-2/8"
+              title="Istaklar ro'yxatiga qo'shish"
+              aria-label="Istaklar ro'yxatiga qo'shish"
+              variant="outline"
+              className="h-10 w-11 shrink-0 rounded-sm border-[#d8c9be] text-[#493f38]"
             >
               {wishlistItems?.items?.find((el) => el?.productId === product?._id) ? (
-                <HeartIcon className={"size-7"} fill={"#fff"} />
+                <HeartIcon className="size-5" fill="currentColor" />
               ) : (
-                <HeartIcon className={"size-7"} />
+                <HeartIcon className="size-5" />
               )}
             </Button>
           </div>
