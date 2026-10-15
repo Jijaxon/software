@@ -1,11 +1,9 @@
-import {Card, CardContent, CardFooter} from "../ui/card";
-import {Button} from "../ui/button";
+import {useState} from "react";
 import {brandOptionsMap, categoryOptionsMap} from "@/config";
-import {Badge} from "../ui/badge";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
 import {toast} from "react-toastify";
-import {HeartIcon} from "lucide-react";
+import {Eye, HeartIcon, ShoppingBag} from "lucide-react";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 
 function ShoppingProductTile({
@@ -15,16 +13,21 @@ function ShoppingProductTile({
                              }) {
 
   const dispatch = useDispatch()
+  const [heartKey, setHeartKey] = useState(0)
 
   const {user} = useSelector(state => state.auth)
   const {wishlistItems, isLoading} = useSelector(state => state.shopWishlist)
+
+  const isInWishlist = Boolean(wishlistItems?.items?.find((el) => el?.productId === product?._id))
+  const isOutOfStock = product?.totalStock === 0
 
   function calculateSale() {
     return (product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)).toFixed(2)
   }
 
   function toggleWishlist(productId) {
-    if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
+    setHeartKey((key) => key + 1)
+    if (isInWishlist) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
         toast.info("Mahsulot istaklar ro'yxatidan olib tashlandi")
@@ -38,51 +41,68 @@ function ShoppingProductTile({
   }
 
   return (
-    <Card className="relative mx-auto w-full max-w-sm overflow-hidden rounded-sm border-[#e8dfd7] bg-white shadow-none">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
-        <div className="relative">
-          <img
-            src={instance.defaults.baseURL + product?.image}
-            alt={product?.title}
-            className="h-[300px] w-full cursor-pointer object-cover"
-          />
-          {(product?.salePrice > 0 || product?.totalStock < 5) && (
-            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-              {product?.salePrice > 0 && <Badge className="rounded-sm bg-[#8b4f3f] hover:bg-[#8b4f3f]">-{product.salePrice}%</Badge>}
-              {product?.totalStock > 0 && product?.totalStock < 5 && <Badge className="rounded-sm bg-white text-[#493f38] hover:bg-white">Faqat {product.totalStock} ta</Badge>}
-            </div>
+    <article className="group relative mx-auto flex w-full max-w-sm flex-col">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-cream">
+        <img
+          src={instance.defaults.baseURL + product?.image}
+          alt={product?.title}
+          loading="lazy"
+          onClick={() => handleGetProductDetails(product?._id)}
+          className={`h-full w-full cursor-pointer object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07] ${isOutOfStock ? "grayscale-[60%]" : ""}`}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-espresso/35 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"/>
+
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {product?.salePrice > 0 && (
+            <span className="rounded-full bg-rose-deep px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white shadow-sm">
+              -{product.salePrice}%
+            </span>
+          )}
+          {product?.totalStock > 0 && product?.totalStock < 5 && (
+            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-mocha backdrop-blur">
+              Faqat {product.totalStock} ta qoldi
+            </span>
+          )}
+          {isOutOfStock && (
+            <span className="rounded-full bg-espresso/85 px-2.5 py-1 text-[11px] font-medium text-ivory backdrop-blur">
+              Sotuvda yo'q
+            </span>
           )}
         </div>
-        <CardContent className="p-4 pb-2">
-          <h2 className="mb-2 line-clamp-2 min-h-12 cursor-pointer text-base font-semibold text-[#29241f]">{product?.title}</h2>
-          <div className="mb-3 flex items-center justify-between gap-2 text-xs text-[#82776f]">
-            <span>{categoryOptionsMap[product?.category] || product?.category}</span>
-            <span className="truncate text-right">{brandOptionsMap[product?.brand] || product?.brand}</span>
-          </div>
-          <div className="flex min-h-8 items-center gap-2">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-sm text-[#82776f]`}
-            >
-              ${Number(product?.price).toFixed(2)}
-            </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-base font-semibold text-[#8b4f3f]">
-                ${calculateSale()}
-              </span>
-            ) : null}
-          </div>
-        </CardContent>
-      </div>
-      <CardFooter className="gap-2 px-4 pb-4 pt-2">
-        {product?.totalStock === 0 ? (
-          <Button disabled className="w-full rounded-sm bg-[#d5cec7] text-[#5d554f]">
-            Sotuvda yo'q
-          </Button>
-        ) : (
-          <div className="flex w-full items-center gap-2">
-            <Button
+
+        <button
+          onClick={() => {
+            if (isLoading) return;
+            if (user) {
+              toggleWishlist(product?._id)
+            } else {
+              toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
+            }
+          }}
+          title="Istaklar ro'yxatiga qo'shish"
+          aria-label="Istaklar ro'yxatiga qo'shish"
+          aria-pressed={isInWishlist}
+          className={`absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-white ${isInWishlist ? "text-rose-deep" : "text-mocha"}`}
+        >
+          <HeartIcon
+            key={heartKey}
+            className={`h-[18px] w-[18px] ${heartKey ? "animate-heart" : ""}`}
+            fill={isInWishlist ? "currentColor" : "none"}
+            strokeWidth={1.8}
+          />
+        </button>
+
+        <button
+          onClick={() => handleGetProductDetails(product?._id)}
+          aria-label="Batafsil ko'rish"
+          className="absolute right-3 top-16 grid h-10 w-10 translate-x-3 place-items-center rounded-full bg-white/90 text-mocha opacity-0 shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-white group-hover:translate-x-0 group-hover:opacity-100"
+        >
+          <Eye className="h-[18px] w-[18px]" strokeWidth={1.8}/>
+        </button>
+
+        {!isOutOfStock && (
+          <div className="absolute inset-x-3 bottom-3 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:translate-y-[calc(100%+16px)] lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
+            <button
               onClick={() => {
                 if (user) {
                   handleAddtoCart(product?._id, product?.totalStock)
@@ -90,35 +110,35 @@ function ShoppingProductTile({
                   toast.error("Xarid qilish uchun tizimga kiring")
                 }
               }}
-              className="h-10 w-full rounded-sm bg-[#493f38] text-white hover:bg-[#68574b]"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white/95 text-[13px] font-semibold text-espresso shadow-lg shadow-espresso/10 backdrop-blur transition-colors duration-300 hover:bg-espresso hover:text-ivory"
             >
+              <ShoppingBag className="h-4 w-4" strokeWidth={1.8}/>
               Savatga qo'shish
-            </Button>
-            <Button
-              onClick={() => {
-                if (!isLoading) {
-                  if (user) {
-                    toggleWishlist(product?._id)
-                  } else {
-                    toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
-                  }
-                }
-              }}
-              title="Istaklar ro'yxatiga qo'shish"
-              aria-label="Istaklar ro'yxatiga qo'shish"
-              variant="outline"
-              className="h-10 w-11 shrink-0 rounded-sm border-[#d8c9be] text-[#493f38]"
-            >
-              {wishlistItems?.items?.find((el) => el?.productId === product?._id) ? (
-                <HeartIcon className="size-5" fill="currentColor" />
-              ) : (
-                <HeartIcon className="size-5" />
-              )}
-            </Button>
+            </button>
           </div>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+
+      <div className="cursor-pointer px-1 pt-4" onClick={() => handleGetProductDetails(product?._id)}>
+        <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-taupe">
+          <span className="truncate">{brandOptionsMap[product?.brand] || product?.brand}</span>
+          <span className="truncate text-right normal-case tracking-normal">{categoryOptionsMap[product?.category] || product?.category}</span>
+        </div>
+        <h2 className="line-clamp-2 min-h-11 text-[15px] font-medium leading-snug text-espresso transition-colors group-hover:text-rose-deep">
+          {product?.title}
+        </h2>
+        <div className="mt-2 flex items-baseline gap-2">
+          {product?.salePrice > 0 ? (
+            <>
+              <span className="font-display text-xl font-semibold text-rose-deep">${calculateSale()}</span>
+              <span className="text-sm text-taupe line-through">${Number(product?.price).toFixed(2)}</span>
+            </>
+          ) : (
+            <span className="font-display text-xl font-semibold text-espresso">${Number(product?.price).toFixed(2)}</span>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 

@@ -10,7 +10,8 @@ const instance = axios.create({
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    toast.error(error?.response?.data?.error)
+    const message = error?.response?.data?.error;
+    if (message) toast.error(message, {toastId: message});
     return Promise.reject(error);
   }
 );

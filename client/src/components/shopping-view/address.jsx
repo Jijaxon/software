@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import CommonForm from "../common/form";
-import {Card, CardContent, CardHeader, CardTitle} from "../ui/card";
+import {MapPinPlus} from "lucide-react";
 import {addressFormControls} from "@/config";
 import {useDispatch, useSelector} from "react-redux";
 import {addNewAddress, deleteAddress, editaAddress, fetchAllAddresses,} from "@/store/shop/address-slice";
@@ -27,10 +27,8 @@ function Address({setCurrentSelectedAddress, selectedId}) {
 
     if (addressList.length >= 3 && currentEditedId === null) {
       setFormData(initialAddressFormData);
-      toast.success(
-        "You can add max 3 addresses"
-      );
-
+      toast.warning("Ko'pi bilan 3 ta manzil qo'shish mumkin");
+      return;
     }
 
     currentEditedId !== null
@@ -45,9 +43,7 @@ function Address({setCurrentSelectedAddress, selectedId}) {
           dispatch(fetchAllAddresses(user?.id));
           setCurrentEditedId(null);
           setFormData(initialAddressFormData);
-          toast({
-            title: "Address updated successfully",
-          });
+          toast.success("Manzil yangilandi");
         }
       })
       : dispatch(
@@ -59,9 +55,7 @@ function Address({setCurrentSelectedAddress, selectedId}) {
         if (data?.payload?.success) {
           dispatch(fetchAllAddresses(user?.id));
           setFormData(initialAddressFormData);
-          toast({
-            title: "Address added successfully",
-          });
+          toast.success("Manzil qo'shildi");
         }
       });
   }
@@ -72,9 +66,7 @@ function Address({setCurrentSelectedAddress, selectedId}) {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllAddresses(user?.id));
-        toast({
-          title: "Address deleted successfully",
-        });
+        toast.info("Manzil o'chirildi");
       }
     });
   }
@@ -101,40 +93,56 @@ function Address({setCurrentSelectedAddress, selectedId}) {
     dispatch(fetchAllAddresses(user?.id));
   }, [dispatch]);
 
-  console.log(addressList, "addressList");
-
   return (
-    <Card>
-      <div className="mb-5 p-3 grid grid-cols-1 sm:grid-cols-2  gap-2">
-        {addressList && addressList.length > 0
-          ? addressList.map((singleAddressItem, index) => (
-            <AddressCard
-              key={index}
-              selectedId={selectedId}
-              handleDeleteAddress={handleDeleteAddress}
-              addressInfo={singleAddressItem}
-              handleEditAddress={handleEditAddress}
-              setCurrentSelectedAddress={setCurrentSelectedAddress}
-            />
-          ))
-          : null}
+    <div className="@container">
+      <div className="grid gap-6 @3xl:grid-cols-[1.2fr_1fr]">
+        <div className="rounded-3xl border border-sand bg-white/60 p-5 md:p-6">
+          <div className="mb-5 flex items-baseline justify-between">
+            <h3 className="font-display text-2xl font-semibold text-espresso">
+              {setCurrentSelectedAddress ? "Yetkazib berish manzili" : "Mening manzillarim"}
+            </h3>
+            <span className="text-xs text-taupe">{addressList?.length || 0} / 3</span>
+          </div>
+          {addressList && addressList.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3 @xl:grid-cols-2 @3xl:grid-cols-1 @5xl:grid-cols-2">
+              {addressList.map((singleAddressItem, index) => (
+                <div key={singleAddressItem?._id || index} className="animate-fade-up" style={{animationDelay: `${index * 70}ms`}}>
+                  <AddressCard
+                    selectedId={selectedId}
+                    handleDeleteAddress={handleDeleteAddress}
+                    addressInfo={singleAddressItem}
+                    handleEditAddress={handleEditAddress}
+                    setCurrentSelectedAddress={setCurrentSelectedAddress}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed border-sand px-4 py-10 text-center text-sm text-taupe">
+              Hali manzil qo'shilmagan. Yon tomondagi formadan foydalaning.
+            </p>
+          )}
+          {setCurrentSelectedAddress && addressList?.length > 0 ? (
+            <p className="mt-4 text-xs text-taupe">Buyurtma uchun manzilni tanlang — ustiga bosing.</p>
+          ) : null}
+        </div>
+        <div className="rounded-3xl border border-sand bg-white p-6 shadow-sm md:p-7">
+          <h3 className="mb-5 flex items-center gap-2 font-display text-2xl font-semibold text-espresso">
+            <MapPinPlus className="h-5 w-5 text-rose-deep" strokeWidth={1.6}/>
+            {currentEditedId !== null ? "Manzilni tahrirlash" : "Yangi manzil"}
+          </h3>
+          <CommonForm
+            variant="nafis"
+            formControls={addressFormControls}
+            formData={formData}
+            setFormData={setFormData}
+            buttonText={currentEditedId !== null ? "Saqlash" : "Qo'shish"}
+            onSubmit={handleManageAddress}
+            isBtnDisabled={!isFormValid()}
+          />
+        </div>
       </div>
-      <CardHeader>
-        <CardTitle>
-          {currentEditedId !== null ? "Edit Address" : "Add New Address"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <CommonForm
-          formControls={addressFormControls}
-          formData={formData}
-          setFormData={setFormData}
-          buttonText={currentEditedId !== null ? "Edit" : "Add"}
-          onSubmit={handleManageAddress}
-          isBtnDisabled={!isFormValid()}
-        />
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 

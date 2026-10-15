@@ -1,19 +1,18 @@
-import {HeartIcon, StarIcon} from "lucide-react";
+import {HeartIcon, MessageCircle, ShieldCheck, ShoppingBag, Sparkles} from "lucide-react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
-import { Separator } from "../ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { setProductDetails } from "@/store/shop/products-slice";
-import { Label } from "../ui/label";
 import StarRatingComponent from "../common/star-rating";
 import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
 import  {toast} from "react-toastify";
 import instance from "@/utils/axios.js";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
+import {brandOptionsMap, categoryOptionsMap} from "@/config";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
@@ -21,13 +20,16 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
+  const [heartKey, setHeartKey] = useState(0);
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
   const {wishlistItems} = useSelector(state => state.shopWishlist)
 
+  const isInWishlist = Boolean(wishlistItems?.items?.find((el) => el?.productId === productDetails?._id));
+
   function calculateSale() {
-    return productDetails?.price - (Number(productDetails?.price) * Number(productDetails?.salePrice) / 100)
+    return (productDetails?.price - (Number(productDetails?.price) * Number(productDetails?.salePrice) / 100)).toFixed(2)
   }
 
   function handleRatingChange(getRating) {
@@ -44,7 +46,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast.success(`Only ${getQuantity} quantity can be added for this item`);
+          toast.warning(`Bu mahsulotdan faqat ${getQuantity} ta qo'shish mumkin`);
 
           return;
         }
@@ -59,9 +61,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success(
-          "Product is added to cart"
-        );
+        toast.success("Mahsulot savatga qo'shildi");
       }
     });
   }
@@ -74,6 +74,15 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   }
 
   function handleAddReview() {
+    if (!user) {
+      toast.error("Fikr qoldirish uchun tizimga kiring");
+      return;
+    }
+    if (!rating) {
+      toast.warning("Iltimos, baho tanlang");
+      return;
+    }
+
     dispatch(
       addReview({
         productId: productDetails?._id,
@@ -87,9 +96,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         setRating(0);
         setReviewMsg("");
         dispatch(getReviews(productDetails?._id));
-        toast({
-          title: "Review added successfully!",
-        });
+        toast.success("Fikringiz uchun rahmat!");
       }
     });
   }
@@ -105,145 +112,191 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       : 0;
 
   function toggleWishlist(productId) {
-    if (wishlistItems?.items?.find((el) => el?.productId === productId)) {
+    setHeartKey((key) => key + 1);
+    if (isInWishlist) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
+        toast.info("Mahsulot istaklar ro'yxatidan olib tashlandi")
       })
     } else {
       dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
+        toast.success("Mahsulot istaklar ro'yxatiga qo'shildi")
       })
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
-        <div className="relative overflow-hidden rounded-lg">
+      <DialogContent className="max-h-[92vh] w-[94vw] max-w-5xl gap-0 overflow-hidden rounded-[28px] border-sand bg-ivory p-0 sm:rounded-[28px] md:grid-cols-2">
+        <div className="relative hidden overflow-hidden bg-cream md:block">
           <img
             src={instance.defaults.baseURL + productDetails?.image}
             alt={productDetails?.title}
-            width={600}
-            height={600}
-            className="aspect-square w-full object-cover"
+            className="h-full max-h-[92vh] w-full animate-ken-burns object-cover"
           />
-        </div>
-        <div className="">
-          <div>
-            <h1 className="text-3xl font-extrabold">{productDetails?.title}</h1>
-            <p className="text-muted-foreground text-2xl mb-5 mt-4">
-              {productDetails?.description}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p
-              className={`text-3xl font-bold text-primary ${
-                productDetails?.salePrice > 0 ? "line-through" : ""
-              }`}
-            >
-              ${productDetails?.price}
-            </p>
-            {productDetails?.salePrice > 0 ? (
-              <p className="text-2xl font-bold text-muted-foreground">
-                ${calculateSale()}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center gap-0.5">
-              <StarRatingComponent rating={averageReview} />
-            </div>
-            <span className="text-muted-foreground">
-              ({averageReview.toFixed(2)})
+          {productDetails?.salePrice > 0 ? (
+            <span className="absolute left-5 top-5 animate-pop rounded-full bg-rose-deep px-3 py-1.5 text-xs font-semibold text-white shadow">
+              -{productDetails?.salePrice}% chegirma
             </span>
+          ) : null}
+        </div>
+
+        <div className="nafis-scroll max-h-[92vh] overflow-y-auto p-6 sm:p-10">
+          <div className="mb-5 overflow-hidden rounded-2xl bg-cream md:hidden">
+            <img
+              src={instance.defaults.baseURL + productDetails?.image}
+              alt={productDetails?.title}
+              className="aspect-square w-full object-cover"
+            />
           </div>
-          <div className="mt-5 mb-5">
+
+          <div className="animate-fade-up">
+            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-deep">
+              <Sparkles className="h-3.5 w-3.5"/>
+              {brandOptionsMap[productDetails?.brand] || productDetails?.brand}
+              <span className="text-taupe">·</span>
+              <span className="text-taupe">{categoryOptionsMap[productDetails?.category] || productDetails?.category}</span>
+            </p>
+            <DialogTitle className="mt-3 font-display text-3xl font-semibold leading-tight text-espresso sm:text-4xl">
+              {productDetails?.title}
+            </DialogTitle>
+
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                <StarRatingComponent rating={averageReview} size="sm" />
+              </div>
+              <span className="text-xs text-taupe">
+                {averageReview.toFixed(1)} · {reviews?.length || 0} ta fikr
+              </span>
+            </div>
+
+            <div className="mt-6 flex items-baseline gap-3">
+              {productDetails?.salePrice > 0 ? (
+                <>
+                  <span className="font-display text-4xl font-semibold text-rose-deep">${calculateSale()}</span>
+                  <span className="text-lg text-taupe line-through">${Number(productDetails?.price).toFixed(2)}</span>
+                </>
+              ) : (
+                <span className="font-display text-4xl font-semibold text-espresso">${Number(productDetails?.price || 0).toFixed(2)}</span>
+              )}
+            </div>
+
+            <DialogDescription className="mt-5 text-[15px] leading-7 text-mocha/90">
+              {productDetails?.description}
+            </DialogDescription>
+          </div>
+
+          <div className="mt-8 flex animate-fade-up items-center gap-3 [animation-delay:120ms]">
             {productDetails?.totalStock === 0 ? (
-              <Button className="w-full opacity-60 cursor-not-allowed">
-                Out of Stock
+              <Button disabled className="h-12 flex-1 rounded-full bg-sand text-mocha">
+                Sotuvda yo'q
               </Button>
             ) : (
-              <div className={"flex items-center justify-between w-full"}>
-                <Button
-                  onClick={() => {
-                    if (user) {
-                      handleAddToCart(productDetails?._id, productDetails?.totalStock)
-                    } else {
-                      toast.error("You're not logged in!")
-                    }
-                  }}
-                  className="w-2/3"
-                >
-                  Add to cart
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (user) {
-                      toggleWishlist(productDetails?._id)
-                    } else {
-                      toast.error("You're not logged in!")
-                    }
-                  }}
-                  className="w-2/8"
-                >
-                  {wishlistItems?.items?.find((el) => el?.productId === productDetails?._id) ? (
-                    <HeartIcon className={"size-7"} fill={"#fff"} />
-                  ) : (
-                    <HeartIcon className={"size-7"} />
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={() => {
+                  if (user) {
+                    handleAddToCart(productDetails?._id, productDetails?.totalStock)
+                  } else {
+                    toast.error("Xarid qilish uchun tizimga kiring")
+                  }
+                }}
+                className="group h-12 flex-1 rounded-full bg-espresso text-sm font-semibold tracking-wide text-ivory transition-all duration-300 hover:bg-mocha hover:shadow-lg hover:shadow-mocha/25"
+              >
+                <ShoppingBag className="transition-transform duration-300 group-hover:-rotate-12" />
+                Savatga qo'shish
+              </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (user) {
+                  toggleWishlist(productDetails?._id)
+                } else {
+                  toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
+                }
+              }}
+              aria-label="Istaklar ro'yxati"
+              className={`h-12 w-12 shrink-0 rounded-full border-sand bg-white transition-all duration-300 hover:border-petal hover:bg-blush ${isInWishlist ? "text-rose-deep" : "text-mocha"}`}
+            >
+              <HeartIcon
+                key={heartKey}
+                className={`!h-5 !w-5 ${heartKey ? "animate-heart" : ""}`}
+                fill={isInWishlist ? "currentColor" : "none"}
+              />
+            </Button>
           </div>
-          <Separator />
-          <div className="max-h-[300px] overflow-auto">
-            <h2 className="text-xl font-bold mb-4">Reviews</h2>
-            <div className="grid gap-6">
+
+          {productDetails?.totalStock > 0 && productDetails?.totalStock < 5 ? (
+            <p className="mt-3 text-xs font-medium text-rose-deep">Shoshiling — omborda faqat {productDetails?.totalStock} ta qoldi</p>
+          ) : null}
+
+          <div className="mt-6 flex items-center gap-2 rounded-2xl bg-cream px-4 py-3 text-xs text-mocha">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-sage"/>
+            Original mahsulot, ishonchli brenddan
+          </div>
+
+          <div className="mt-10">
+            <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-espresso">
+              <MessageCircle className="h-5 w-5 text-rose" strokeWidth={1.6}/>
+              Mijozlar fikri
+            </h2>
+            <div className="mt-5 grid gap-4">
               {reviews && reviews.length > 0 ? (
-                reviews?.map((reviewItem) => (
-                  <div className="flex gap-4" key={reviewItem?._id}>
-                    <Avatar className="w-10 h-10 border">
-                      <AvatarFallback>
-                        {reviewItem?.userId?.username[0]?.toUpperCase()}
+                reviews?.map((reviewItem, index) => (
+                  <div
+                    className="flex animate-fade-up gap-3 rounded-2xl border border-sand bg-white p-4"
+                    style={{animationDelay: `${index * 60}ms`}}
+                    key={reviewItem?._id}
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-blush text-sm font-semibold text-rose-deep">
+                        {(reviewItem?.userName || reviewItem?.userId?.username || "?")[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="grid gap-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{reviewItem?.userName}</h3>
-                      </div>
+                    <div className="grid min-w-0 gap-1">
+                      <h3 className="text-sm font-semibold text-espresso">{reviewItem?.userName || reviewItem?.userId?.username}</h3>
                       <div className="flex items-center gap-0.5">
-                        <StarRatingComponent rating={reviewItem?.reviewValue} />
+                        <StarRatingComponent rating={reviewItem?.reviewValue} size="sm" />
                       </div>
-                      <p className="text-muted-foreground">
+                      <p className="text-sm leading-6 text-mocha/90">
                         {reviewItem?.reviewMessage}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <h1>No Reviews</h1>
+                <p className="rounded-2xl border border-dashed border-sand px-4 py-6 text-center text-sm text-taupe">
+                  Hali fikr qoldirilmagan. Birinchi bo'ling!
+                </p>
               )}
             </div>
-            <div className="mt-10 flex-col flex gap-2">
-              <Label>Write a review</Label>
-              <div className="flex gap-1">
+
+            <div className="mt-8 rounded-2xl border border-sand bg-white p-5">
+              <p className="text-sm font-semibold text-espresso">Fikr qoldiring</p>
+              <div className="mt-3 flex gap-1">
                 <StarRatingComponent
                   rating={rating}
                   handleRatingChange={handleRatingChange}
+                  size="lg"
                 />
               </div>
-              <Input
-                name="reviewMsg"
-                value={reviewMsg}
-                onChange={(event) => setReviewMsg(event.target.value)}
-                placeholder="Write a review..."
-              />
-              <Button
-                onClick={handleAddReview}
-                disabled={reviewMsg.trim() === ""}
-              >
-                Submit
-              </Button>
+              <div className="mt-4 flex gap-2">
+                <Input
+                  name="reviewMsg"
+                  value={reviewMsg}
+                  onChange={(event) => setReviewMsg(event.target.value)}
+                  placeholder="Mahsulot haqida fikringiz..."
+                  className="h-11 rounded-full border-sand bg-ivory px-4 focus-visible:ring-rose"
+                />
+                <Button
+                  onClick={handleAddReview}
+                  disabled={reviewMsg.trim() === ""}
+                  className="h-11 rounded-full bg-espresso px-5 text-ivory hover:bg-mocha"
+                >
+                  Yuborish
+                </Button>
+              </div>
             </div>
           </div>
         </div>

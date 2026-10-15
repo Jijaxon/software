@@ -1,22 +1,22 @@
 export const registerFormControls = [
   {
     name: "username",
-    label: "User Name",
-    placeholder: "Enter your user name",
+    label: "Foydalanuvchi nomi",
+    placeholder: "Ismingizni kiriting",
     componentType: "input",
     type: "text",
   },
   {
     name: "email",
     label: "Email",
-    placeholder: "Enter your email",
+    placeholder: "email@misol.uz",
     componentType: "input",
     type: "email",
   },
   {
     name: "password",
-    label: "Password",
-    placeholder: "Enter your password",
+    label: "Parol",
+    placeholder: "Parolingizni kiriting",
     componentType: "input",
     type: "password",
   },
@@ -25,8 +25,8 @@ export const registerFormControls = [
 export const verifyFormControls = [
   {
     name: "code",
-    label: "Code",
-    placeholder: "Enter your code",
+    label: "Tasdiqlash kodi",
+    placeholder: "Emailingizga kelgan kod",
     componentType: "input",
     type: "number",
   },
@@ -36,9 +36,9 @@ export const reVerifyFormControls = [
   {
     name: "email",
     label: "Email",
-    placeholder: "Enter your email",
+    placeholder: "email@misol.uz",
     componentType: "input",
-    type: "mail",
+    type: "email",
   },
 ]
 
@@ -46,14 +46,14 @@ export const loginFormControls = [
   {
     name: "email",
     label: "Email",
-    placeholder: "Enter your email",
+    placeholder: "email@misol.uz",
     componentType: "input",
     type: "email",
   },
   {
     name: "password",
-    label: "Password",
-    placeholder: "Enter your password",
+    label: "Parol",
+    placeholder: "Parolingizni kiriting",
     componentType: "input",
     type: "password",
   },
@@ -168,8 +168,8 @@ export const filterOptions = {
 
 // Sort (saralash) variantlari
 export const sortOptions = [
-  {id: "price-lowtohigh", label: "Price: Low to High"},
-  {id: "price-hightolow", label: "Price: High to Low"},
+  {id: "price-lowtohigh", label: "Narx: arzonidan qimmatiga"},
+  {id: "price-hightolow", label: "Narx: qimmatidan arzoniga"},
   {id: "title-atoz", label: "Nomi: A dan Z gacha"},
   {id: "title-ztoa", label: "Nomi: Z dan A gacha"},
 ];
@@ -177,38 +177,38 @@ export const sortOptions = [
 // Yetkazib berish (address formasi)
 export const addressFormControls = [
   {
-    label: "Address",
+    label: "Manzil",
     name: "address",
     componentType: "input",
     type: "text",
-    placeholder: "Enter your delivery address",
+    placeholder: "Ko'cha, uy, xonadon",
   },
   {
-    label: "City",
+    label: "Shahar",
     name: "city",
     componentType: "input",
     type: "text",
-    placeholder: "Enter your city",
+    placeholder: "Masalan, Toshkent",
   },
   {
-    label: "Postal Code",
+    label: "Pochta indeksi",
     name: "pincode",
     componentType: "input",
     type: "text",
-    placeholder: "Enter postal code",
+    placeholder: "100000",
   },
   {
-    label: "Phone Number",
+    label: "Telefon raqami",
     name: "phone",
     componentType: "input",
     type: "text",
-    placeholder: "Enter your phone number",
+    placeholder: "+998 90 123 45 67",
   },
   {
-    label: "Notes",
+    label: "Izoh",
     name: "notes",
     componentType: "textarea",
-    placeholder: "Enter any special delivery notes",
+    placeholder: "Yetkazib berish bo'yicha qo'shimcha izoh",
   },
 ];
 
@@ -217,21 +217,21 @@ export const profileFormControls = [
     label: "Email",
     name: "email",
     componentType: "input",
-    type: "mail",
-    placeholder: "Enter your email",
+    type: "email",
+    placeholder: "email@misol.uz",
   },
   {
-    label: "Username",
+    label: "Foydalanuvchi nomi",
     name: "username",
     componentType: "input",
     type: "text",
-    placeholder: "Enter your username"
+    placeholder: "Ismingiz"
   },
   {
-    label: "Password",
+    label: "Yangi parol",
     name: "password",
     componentType: "input",
-    type: "text",
-    placeholder: "Enter your password"
+    type: "password",
+    placeholder: "Yangi parolni kiriting"
   }
 ]

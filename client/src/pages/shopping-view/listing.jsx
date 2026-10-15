@@ -9,11 +9,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {sortOptions} from "@/config";
+import {categoryOptionsMap, sortOptions} from "@/config";
 import {toast} from "react-toastify";
 import {addToCart, fetchCartItems} from "@/store/shop/cart-slice";
 import {fetchAllFilteredProducts, fetchProductDetails,} from "@/store/shop/products-slice";
-import {ArrowUpDownIcon} from "lucide-react";
+import {ArrowUpDownIcon, PackageSearch} from "lucide-react";
+import Reveal from "@/components/common/reveal.jsx";
 import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useSearchParams} from "react-router-dom";
@@ -34,7 +35,7 @@ function createSearchParamsHelper(filterParams) {
 
 function ShoppingListing() {
   const dispatch = useDispatch();
-  const {productList, productDetails} = useSelector(
+  const {productList, productDetails, isLoading} = useSelector(
     (state) => state.shopProducts
   );
   const {cartItems} = useSelector((state) => state.shopCart);
@@ -74,7 +75,6 @@ function ShoppingListing() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
-    console.log(getCurrentProductId);
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
@@ -88,8 +88,8 @@ function ShoppingListing() {
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem]?.quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast.success(
-            `Only ${getQuantity} quantity can be added for this item`
+          toast.warning(
+            `Bu mahsulotdan faqat ${getQuantity} ta qo'shish mumkin`
           );
 
           return;
@@ -104,10 +104,9 @@ function ShoppingListing() {
         quantity: 1,
       })
     ).then((data) => {
-      console.log(data)
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Product is added to cart");
+        toast.success("Mahsulot savatga qo'shildi");
       }
     });
   }
@@ -135,33 +134,52 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
+  const activeSortLabel = sortOptions.find((sortItem) => sortItem.id === sort)?.label;
+  const activeCategory = filters?.category?.length === 1 ? categoryOptionsMap[filters.category[0]] : null;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
-      <ProductFilter filters={filters} handleFilter={handleFilter}/>
-      <div className="bg-background w-full rounded-lg shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground">
-              {productList?.length} Products
+    <div className="bg-ivory">
+      <section className="relative overflow-hidden border-b border-sand bg-cream">
+        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-petal/40 blur-3xl"/>
+        <div className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-gold/20 blur-3xl"/>
+        <div className="relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-16">
+          <p className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">
+            NAFIS katalogi
+          </p>
+          <h1 className="mt-3 animate-fade-up font-display text-5xl font-medium text-espresso [animation-delay:100ms] md:text-6xl">
+            {activeCategory || "Barcha mahsulotlar"}
+          </h1>
+          <p className="mt-3 max-w-lg animate-fade-up text-sm leading-6 text-mocha/80 [animation-delay:200ms]">
+            Teringiz va uslubingizga mosini toping — kategoriya va brend bo'yicha saralang.
+          </p>
+        </div>
+      </section>
+
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-5 py-10 md:grid-cols-[250px_1fr] md:px-10">
+        <ProductFilter filters={filters} handleFilter={handleFilter}/>
+        <div className="w-full">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm text-taupe">
+              <span className="font-semibold text-espresso">{productList?.length || 0}</span> ta mahsulot
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-1"
+                  className="h-10 gap-2 rounded-full border-sand bg-white px-4 text-xs font-medium text-mocha hover:border-petal hover:bg-blush/50"
                 >
                   <ArrowUpDownIcon className="h-4 w-4"/>
-                  <span>Sort by</span>
+                  <span>{activeSortLabel || "Saralash"}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuContent align="end" className="w-[240px] rounded-2xl border-sand p-2 shadow-xl shadow-mocha/10">
                 <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
                   {sortOptions?.map((sortItem) => (
                     <DropdownMenuRadioItem
                       value={sortItem.id}
                       key={sortItem.id}
+                      className="cursor-pointer rounded-xl py-2.5 focus:bg-blush/60"
                     >
                       {sortItem.label}
                     </DropdownMenuRadioItem>
@@ -170,18 +188,38 @@ function ShoppingListing() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {productList && productList.length > 0
-            ? productList.map((productItem) => (
-              <ShoppingProductTile
-                key={productItem?._id}
-                handleGetProductDetails={handleGetProductDetails}
-                product={productItem}
-                handleAddtoCart={handleAddtoCart}
-              />
-            ))
-            : null}
+
+          {isLoading && !productList?.length ? (
+            <div className="grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({length: 6}).map((_, index) => (
+                <div key={index}>
+                  <div className="shimmer aspect-[4/5] rounded-[22px]"/>
+                  <div className="shimmer mt-4 h-3 w-1/3 rounded-full"/>
+                  <div className="shimmer mt-3 h-4 w-3/4 rounded-full"/>
+                </div>
+              ))}
+            </div>
+          ) : productList && productList.length > 0 ? (
+            <div className="grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {productList.map((productItem, index) => (
+                <Reveal key={productItem?._id} delay={(index % 3) * 90}>
+                  <ShoppingProductTile
+                    handleGetProductDetails={handleGetProductDetails}
+                    product={productItem}
+                    handleAddtoCart={handleAddtoCart}
+                  />
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center rounded-3xl border border-dashed border-sand px-6 py-20 text-center">
+              <div className="grid h-20 w-20 animate-float place-items-center rounded-full bg-blush">
+                <PackageSearch className="h-8 w-8 text-rose-deep" strokeWidth={1.4}/>
+              </div>
+              <h3 className="mt-6 font-display text-3xl font-medium text-espresso">Hech narsa topilmadi</h3>
+              <p className="mt-2 max-w-sm text-sm text-taupe">Boshqa filtrlarni tanlab ko'ring yoki barcha mahsulotlarni ko'zdan kechiring.</p>
+            </div>
+          )}
         </div>
       </div>
       <ProductDetailsDialog

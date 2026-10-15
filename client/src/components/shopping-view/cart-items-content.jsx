@@ -1,5 +1,4 @@
-import { Minus, Plus, Trash } from "lucide-react";
-import { Button } from "../ui/button";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { toast } from "react-toastify";
@@ -10,6 +9,9 @@ function UserCartItemsContent({ cartItem }) {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { productList } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
+
+  const unitPrice =
+    cartItem?.price - (Number(cartItem?.price) * Number(cartItem?.salePrice) / 100);
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
     if (typeOfAction === "plus") {
@@ -23,13 +25,13 @@ function UserCartItemsContent({ cartItem }) {
         const getCurrentProductIndex = productList.findIndex(
           (product) => product._id === getCartItem?.productId
         );
-        const getTotalStock = productList[getCurrentProductIndex].totalStock;
+        const getTotalStock = productList[getCurrentProductIndex]?.totalStock;
 
-        if (indexOfCurrentCartItem > -1) {
+        if (indexOfCurrentCartItem > -1 && getTotalStock !== undefined) {
           const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
           if (getQuantity + 1 > getTotalStock) {
-            toast.error(
-              `Only ${getQuantity} quantity can be added for this item`
+            toast.warning(
+              `Bu mahsulotdan faqat ${getQuantity} ta qo'shish mumkin`
             );
             return;
           }
@@ -48,7 +50,7 @@ function UserCartItemsContent({ cartItem }) {
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast.success("Cart item is updated successfully");
+        toast.success("Savat yangilandi");
       }
     });
   }
@@ -58,56 +60,63 @@ function UserCartItemsContent({ cartItem }) {
       deleteCartItem({ userId: user?.id, productId: getCartItem?.productId })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast.success("Cart item is deleted successfully");
+        toast.info("Mahsulot savatdan olib tashlandi");
       }
     });
   }
 
   return (
-    <div className="flex items-center space-x-4">
-      <img
-        src={instance.defaults.baseURL + cartItem?.image}
-        alt={cartItem?.title}
-        className="w-20 h-20 rounded object-cover"
-      />
-      <div className="flex-1">
-        <h3 className="font-extrabold">{cartItem?.title}</h3>
-        <div className="flex items-center gap-2 mt-1">
-          <Button
-            variant="outline"
-            className="h-8 w-8 rounded-full"
-            size="icon"
-            disabled={cartItem?.quantity === 1}
-            onClick={() => handleUpdateQuantity(cartItem, "minus")}
-          >
-            <Minus className="w-4 h-4" />
-            <span className="sr-only">Decrease</span>
-          </Button>
-          <span className="font-semibold">{cartItem?.quantity}</span>
-          <Button
-            variant="outline"
-            className="h-8 w-8 rounded-full"
-            size="icon"
-            onClick={() => handleUpdateQuantity(cartItem, "plus")}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="sr-only">Increase</span>
-          </Button>
-        </div>
-      </div>
-      <div className="flex flex-col items-end">
-        <p className="font-semibold">
-          $
-          {(
-            (cartItem?.price - (Number(cartItem?.price) * Number(cartItem?.salePrice) / 100)) *
-            cartItem?.quantity
-          ).toFixed(2)}
-        </p>
-        <Trash
-          onClick={() => handleCartItemDelete(cartItem)}
-          className="cursor-pointer mt-1"
-          size={20}
+    <div className="group flex gap-4 rounded-2xl border border-sand bg-white p-3 transition-all duration-300 hover:border-petal hover:shadow-md hover:shadow-mocha/5">
+      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-cream">
+        <img
+          src={instance.defaults.baseURL + cartItem?.image}
+          alt={cartItem?.title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-espresso">{cartItem?.title}</h3>
+          <button
+            onClick={() => handleCartItemDelete(cartItem)}
+            aria-label="O'chirish"
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-taupe transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center rounded-full border border-sand bg-ivory">
+            <button
+              className="grid h-8 w-8 place-items-center rounded-full text-mocha transition-colors hover:bg-blush disabled:pointer-events-none disabled:opacity-40"
+              disabled={cartItem?.quantity === 1}
+              onClick={() => handleUpdateQuantity(cartItem, "minus")}
+            >
+              <Minus className="h-3.5 w-3.5" />
+              <span className="sr-only">Kamaytirish</span>
+            </button>
+            <span key={cartItem?.quantity} className="w-6 animate-pop text-center text-sm font-semibold">
+              {cartItem?.quantity}
+            </span>
+            <button
+              className="grid h-8 w-8 place-items-center rounded-full text-mocha transition-colors hover:bg-blush"
+              onClick={() => handleUpdateQuantity(cartItem, "plus")}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="sr-only">Ko'paytirish</span>
+            </button>
+          </div>
+          <div className="text-right">
+            <p className="font-display text-lg font-semibold text-espresso">
+              ${(unitPrice * cartItem?.quantity).toFixed(2)}
+            </p>
+            {cartItem?.salePrice > 0 ? (
+              <p className="text-[11px] text-taupe line-through">
+                ${(Number(cartItem?.price) * cartItem?.quantity).toFixed(2)}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

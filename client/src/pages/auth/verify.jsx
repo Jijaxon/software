@@ -1,5 +1,6 @@
 import {Link, useNavigate, useSearchParams} from "react-router-dom";
 import {useState} from "react";
+import {MailCheck} from "lucide-react";
 import CommonForm from "@/components/common/form.jsx";
 import {verifyFormControls} from "@/config/index.js";
 import {useDispatch} from "react-redux";
@@ -21,40 +22,43 @@ function AuthVerify() {
 
   function onSubmit(event) {
     event.preventDefault();
-    console.log(formData)
     dispatch(verifyUser({email, code: formData.code})).then((data) => {
       if (data?.payload?.success) {
-        toast.success(data?.payload?.message || "Verify successfully!");
+        toast.success(data?.payload?.message || "Email tasdiqlandi!");
         navigate("/auth/login");
-      } else {
-        toast.error("User already exists! Please try again!", {
-          variant: "destructive",
-          style: {
-            backgroundColor: "#ef4444",
-            color: "#fff",
-          },
-        });
+      } else if (!data?.payload?.error) {
+        toast.error(data?.payload?.message || "Kod noto'g'ri. Qayta urinib ko'ring");
       }
     });
   }
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Verify your email
+    <div className="mx-auto w-full max-w-md">
+      <div className="mb-10">
+        <div className="mb-6 grid h-16 w-16 animate-float place-items-center rounded-full bg-blush">
+          <MailCheck className="h-7 w-7 text-rose-deep" strokeWidth={1.5}/>
+        </div>
+        <h1 className="font-display text-5xl font-medium leading-tight text-espresso">
+          Emailingizni tasdiqlang
         </h1>
-        <p className="mt-2">
-          We sent a verification code to <b>{email}</b>. Enter it below:
+        <p className="mt-3 text-sm leading-6 text-taupe">
+          Tasdiqlash kodini <b className="font-semibold text-espresso">{email}</b> manziliga yubordik. Uni quyida kiriting.
         </p>
       </div>
       <CommonForm
+        variant="nafis"
         formControls={verifyFormControls}
-        buttonText={"Verify"}
+        buttonText={"Tasdiqlash"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
       />
+      <p className="mt-8 text-center text-xs text-taupe">
+        Kod kelmadimi?
+        <Link className="nav-link ml-1.5 font-semibold text-mocha" to="/auth/verify">
+          Qayta yuborish
+        </Link>
+      </p>
     </div>
   );
 }

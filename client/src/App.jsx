@@ -17,7 +17,7 @@ import UnauthPage from "@/pages/unauth-page/index.jsx";
 import {useDispatch, useSelector} from "react-redux";
 import {useEffect} from "react";
 import {checkAuth} from "@/store/auth-slice/index.js";
-import {Skeleton} from "@/components/ui/skeleton"
+import {Sparkles} from "lucide-react";
 import About from "@/pages/shopping-view/about.jsx";
 import Search from "@/pages/shopping-view/search.jsx";
 import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
@@ -36,10 +36,17 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (isLoading) return <Skeleton className="h-[600px] w-[800] bg-black"/>
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ivory">
+        <Sparkles className="h-6 w-6 animate-spin-slow text-rose"/>
+        <span className="animate-pulse font-display text-4xl font-semibold tracking-[0.3em] text-espresso">NAFIS</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col overflow-hidden bg-white">
+    <div className="flex flex-col overflow-x-clip bg-white">
       <Routes>
         <Route path="/auth"
                element={<AuthLayout/>}>

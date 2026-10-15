@@ -120,3 +120,299 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* ─────────────────────────────────────────────
+   NAFIS — kosmetika do'koni mavzusi (faqat client)
+   ───────────────────────────────────────────── */
+
+@theme {
+	--color-ivory: #fcf8f5;
+	--color-cream: #f7f0ea;
+	--color-blush: #f4e1da;
+	--color-petal: #ebc9c1;
+	--color-rose: #c58891;
+	--color-rose-deep: #9c5763;
+	--color-espresso: #2e2320;
+	--color-mocha: #5b463f;
+	--color-taupe: #8a7b74;
+	--color-sand: #ece2db;
+	--color-gold: #c6a07c;
+	--color-sage: #6f8f72;
+
+	--font-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+	--font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+	--animate-fade-up: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+	--animate-fade-in: fade-in 0.6s ease-out both;
+	--animate-float: float 6s ease-in-out infinite;
+	--animate-shimmer: shimmer 1.6s linear infinite;
+	--animate-pop: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+	--animate-heart: heart-beat 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+	--animate-marquee: marquee 32s linear infinite;
+	--animate-ken-burns: ken-burns 14s ease-out both;
+	--animate-spin-slow: spin 14s linear infinite;
+	--animate-draw: draw 0.9s 0.25s cubic-bezier(0.65, 0, 0.35, 1) both;
+
+	@keyframes fade-up {
+		from { opacity: 0; transform: translateY(24px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+	@keyframes fade-in {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
+	@keyframes float {
+		0%, 100% { transform: translateY(0) rotate(0deg); }
+		50% { transform: translateY(-14px) rotate(3deg); }
+	}
+	@keyframes shimmer {
+		from { background-position: -200% 0; }
+		to { background-position: 200% 0; }
+	}
+	@keyframes pop {
+		0% { transform: scale(0.4); opacity: 0; }
+		100% { transform: scale(1); opacity: 1; }
+	}
+	@keyframes heart-beat {
+		0% { transform: scale(1); }
+		30% { transform: scale(1.35); }
+		60% { transform: scale(0.9); }
+		100% { transform: scale(1); }
+	}
+	@keyframes marquee {
+		from { transform: translateX(0); }
+		to { transform: translateX(-50%); }
+	}
+	@keyframes ken-burns {
+		from { transform: scale(1.12); }
+		to { transform: scale(1); }
+	}
+	@keyframes draw {
+		from { stroke-dashoffset: 48; }
+		to { stroke-dashoffset: 0; }
+	}
+}
+
+.theme-nafis {
+	--radius: 0.875rem;
+	--background: #fcf8f5;
+	--foreground: #2e2320;
+	--card: #ffffff;
+	--card-foreground: #2e2320;
+	--popover: #ffffff;
+	--popover-foreground: #2e2320;
+	--primary: #2e2320;
+	--primary-foreground: #fcf8f5;
+	--secondary: #f7f0ea;
+	--secondary-foreground: #2e2320;
+	--muted: #f7f0ea;
+	--muted-foreground: #8a7b74;
+	--accent: #f4e1da;
+	--accent-foreground: #2e2320;
+	--destructive: #b4474f;
+	--border: #ece2db;
+	--input: #e4d6cd;
+	--ring: #c58891;
+
+	font-family: var(--font-body);
+	-webkit-font-smoothing: antialiased;
+	background-color: var(--background);
+	color: var(--foreground);
+}
+
+.theme-nafis ::selection {
+	background: #ebc9c1;
+	color: #2e2320;
+}
+
+/* Skroll bo'lganda paydo bo'lish */
+.reveal {
+	opacity: 0;
+	transform: translateY(28px);
+	transition:
+		opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+		transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+	transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+	opacity: 1;
+	transform: none;
+}
+
+/* Menyu havolasi ostidagi chiziq */
+.nav-link {
+	position: relative;
+}
+.nav-link::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -6px;
+	height: 1px;
+	background: currentColor;
+	transform: scaleX(0);
+	transform-origin: right;
+	transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover::after,
+.nav-link[data-active="true"]::after {
+	transform: scaleX(1);
+	transform-origin: left;
+}
+
+/* Skeleton yaltirashi */
+.shimmer {
+	background: linear-gradient(90deg, #f3ebe5 25%, #fbf6f2 50%, #f3ebe5 75%);
+	background-size: 200% 100%;
+	animation: var(--animate-shimmer);
+}
+
+/* Nozik skrollbar */
+.nafis-scroll::-webkit-scrollbar {
+	width: 6px;
+}
+.nafis-scroll::-webkit-scrollbar-thumb {
+	background: #e4d6cd;
+	border-radius: 999px;
+}
+
+/* ─────────────────────────────────────────────
+   Bildirishnomalar (react-toastify)
+   ───────────────────────────────────────────── */
+
+.nafis-toaster {
+	--toastify-toast-width: 380px;
+	--toastify-font-family: var(--font-body);
+	padding: 0;
+}
+
+.Toastify__toast.nafis-toast {
+	--nafis-tone: #9c5763;
+	--nafis-tone-soft: #f4e1da;
+
+	position: relative;
+	min-height: 0;
+	margin-bottom: 12px;
+	padding: 14px 16px 16px 14px;
+	gap: 12px;
+	align-items: center;
+	overflow: hidden;
+	border-radius: 18px;
+	border: 1px solid rgba(236, 226, 219, 0.9);
+	background: rgba(255, 255, 255, 0.92);
+	backdrop-filter: blur(14px) saturate(140%);
+	-webkit-backdrop-filter: blur(14px) saturate(140%);
+	color: #2e2320;
+	font-family: var(--font-body);
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.45;
+	box-shadow:
+		0 1px 2px rgba(46, 35, 32, 0.04),
+		0 18px 40px -16px rgba(91, 70, 63, 0.28);
+}
+
+.Toastify__toast.nafis-toast::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 3px;
+	background: var(--nafis-tone);
+}
+
+.Toastify__toast--success.nafis-toast {
+	--nafis-tone: #6f8f72;
+	--nafis-tone-soft: #e6efe6;
+}
+.Toastify__toast--error.nafis-toast {
+	--nafis-tone: #b4474f;
+	--nafis-tone-soft: #f8e1e2;
+}
+.Toastify__toast--warning.nafis-toast {
+	--nafis-tone: #b9823a;
+	--nafis-tone-soft: #f7ead6;
+}
+.Toastify__toast--info.nafis-toast {
+	--nafis-tone: #9c5763;
+	--nafis-tone-soft: #f4e1da;
+}
+
+.nafis-toast .Toastify__toast-icon {
+	width: auto;
+	margin-inline-end: 0;
+}
+
+.nafis-toast__icon {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 999px;
+	background: var(--nafis-tone-soft);
+	color: var(--nafis-tone);
+	animation: var(--animate-pop);
+	animation-delay: 0.12s;
+}
+
+.nafis-toast__close {
+	align-self: flex-start;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 999px;
+	color: #8a7b74;
+	transition: background 0.2s, color 0.2s;
+}
+.nafis-toast__close:hover {
+	background: #f7f0ea;
+	color: #2e2320;
+}
+
+.nafis-toast .Toastify__progress-bar--wrp {
+	height: 2px;
+}
+.nafis-toast .Toastify__progress-bar {
+	background: var(--nafis-tone);
+	opacity: 0.55 !important;
+}
+
+@keyframes nafis-toast-in {
+	from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.96); filter: blur(4px); }
+	to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@keyframes nafis-toast-out {
+	from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+	to { opacity: 0; transform: translate3d(24px, 0, 0) scale(0.96); }
+}
+.nafis-toast-in {
+	animation: nafis-toast-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.nafis-toast-out {
+	animation: nafis-toast-out 0.3s ease-in both;
+}
+
+@media (max-width: 480px) {
+	.nafis-toaster {
+		padding: 0 12px 12px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.reveal {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+	.theme-nafis *,
+	.theme-nafis *::before,
+	.theme-nafis *::after,
+	.nafis-toast,
+	.nafis-toast-in,
+	.nafis-toast-out {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

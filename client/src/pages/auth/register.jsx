@@ -22,45 +22,34 @@ function AuthRegister() {
     event.preventDefault();
     dispatch(registerUser(formData)).then((data) => {
       if (data?.payload?.success) {
-        toast.success(data?.payload?.message || "Register successful!");
+        toast.success(data?.payload?.message || "Ro'yxatdan o'tdingiz! Emailingizni tasdiqlang");
         setTimeout(() => {
           navigate("/auth/verify-email?email=" + formData.email);
         }, 200)
-        // navigate("/auth/login");
-      } else {
-        toast.error("User already exists! Please try again!", {
-          variant: "destructive",
-          style: {
-            backgroundColor: "#ef4444",
-            color: "#fff",
-          },
-        });
+      } else if (!data?.payload?.error) {
+        toast.error(data?.payload?.message || "Bu foydalanuvchi allaqachon mavjud");
       }
     });
   }
 
-  console.log(formData);
-
   return (
-    <div className="mx-auto w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create new account
+    <div className="mx-auto w-full max-w-md">
+      <div className="mb-10">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">NAFIS'ga qo'shiling</p>
+        <h1 className="mt-3 font-display text-5xl font-medium leading-tight text-espresso">
+          Yangi hisob yarating
         </h1>
-        <p className="mt-2">
-          Already have an account
-          <Link
-            className="font-medium ml-2 text-primary hover:underline"
-            to="/auth/login"
-
-          >
-            Login
+        <p className="mt-3 text-sm text-taupe">
+          Hisobingiz bormi?
+          <Link className="nav-link ml-2 font-semibold text-rose-deep" to="/auth/login">
+            Kirish
           </Link>
         </p>
       </div>
       <CommonForm
+        variant="nafis"
         formControls={registerFormControls}
-        buttonText={"Sign Up"}
+        buttonText={"Ro'yxatdan o'tish"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
