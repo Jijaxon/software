@@ -4,7 +4,7 @@ const { toRecord, toRecords } = require("../../db/records");
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT o.*, CASE WHEN u.id IS NULL THEN NULL ELSE json_build_object('id', u.id, '_id', u.id, 'username', u.username, 'email', u.email) END AS user_id
+      `SELECT o.*, CASE WHEN u.id IS NULL THEN NULL ELSE json_build_object('id', u.id, '_id', u.id, 'username', u.username, 'email', u.email, 'phone', u.phone) END AS user_id
        FROM orders o LEFT JOIN users u ON u.id = o.user_id ORDER BY o.created_at DESC`
     );
     const orders = toRecords(rows);
@@ -34,7 +34,7 @@ const getOrderDetailsForAdmin = async (req, res) => {
     const { id } = req.params;
 
     const { rows } = await pool.query(
-      `SELECT o.*, CASE WHEN u.id IS NULL THEN NULL ELSE json_build_object('id', u.id, '_id', u.id, 'username', u.username, 'email', u.email) END AS user_id
+      `SELECT o.*, CASE WHEN u.id IS NULL THEN NULL ELSE json_build_object('id', u.id, '_id', u.id, 'username', u.username, 'email', u.email, 'phone', u.phone) END AS user_id
        FROM orders o LEFT JOIN users u ON u.id = o.user_id WHERE o.id = $1`, [id]
     );
     const order = toRecord(rows[0]);

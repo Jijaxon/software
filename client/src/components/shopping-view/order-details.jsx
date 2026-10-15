@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import {formatPrice, getFinalPrice} from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { DialogContent, DialogTitle } from "../ui/dialog";
 import OrderStatusBadge from "./order-status";
@@ -40,7 +41,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
           {paymentStatusLabels[orderDetails?.paymentStatus] || orderDetails?.paymentStatus}
         </InfoRow>
         <InfoRow label="Jami">
-          <span className="font-display text-xl font-semibold">${Number(orderDetails?.totalAmount || 0).toFixed(2)}</span>
+          <span className="font-display text-xl font-semibold">{formatPrice(orderDetails?.totalAmount)}</span>
         </InfoRow>
       </div>
 
@@ -55,7 +56,7 @@ function ShoppingOrderDetailsView({ orderDetails }) {
               >
                 <span className="min-w-0 flex-1 truncate font-medium text-espresso">{item.title}</span>
                 <span className="text-taupe">× {item.quantity}</span>
-                <span className="w-20 text-right font-semibold text-espresso">${item.price}</span>
+                <span className="w-28 text-right font-semibold text-espresso">{formatPrice(getFinalPrice(item.price, item.salePrice))}</span>
               </li>
             ))
             : null}

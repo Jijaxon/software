@@ -1,4 +1,5 @@
 import {HeartIcon, MessageCircle, ShieldCheck, ShoppingBag, Sparkles} from "lucide-react";
+import {formatPrice} from "@/lib/utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
@@ -174,11 +175,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <div className="mt-6 flex items-baseline gap-3">
               {productDetails?.salePrice > 0 ? (
                 <>
-                  <span className="font-display text-4xl font-semibold text-rose-deep">${calculateSale()}</span>
-                  <span className="text-lg text-taupe line-through">${Number(productDetails?.price).toFixed(2)}</span>
+                  <span className="font-display text-4xl font-semibold text-rose-deep">{formatPrice(calculateSale())}</span>
+                  <span className="text-lg text-taupe line-through">{formatPrice(productDetails?.price)}</span>
                 </>
               ) : (
-                <span className="font-display text-4xl font-semibold text-espresso">${Number(productDetails?.price || 0).toFixed(2)}</span>
+                <span className="font-display text-4xl font-semibold text-espresso">{formatPrice(productDetails?.price)}</span>
               )}
             </div>
 

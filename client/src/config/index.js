@@ -2,53 +2,26 @@ export const registerFormControls = [
   {
     name: "username",
     label: "Foydalanuvchi nomi",
-    placeholder: "Ismingizni kiriting",
+    placeholder: "Masalan, malika",
     componentType: "input",
     type: "text",
   },
   {
-    name: "email",
-    label: "Email",
-    placeholder: "email@misol.uz",
-    componentType: "input",
-    type: "email",
-  },
-  {
     name: "password",
     label: "Parol",
-    placeholder: "Parolingizni kiriting",
+    placeholder: "Kamida 6 ta belgi",
     componentType: "input",
     type: "password",
   },
 ];
 
-export const verifyFormControls = [
-  {
-    name: "code",
-    label: "Tasdiqlash kodi",
-    placeholder: "Emailingizga kelgan kod",
-    componentType: "input",
-    type: "number",
-  },
-]
-
-export const reVerifyFormControls = [
-  {
-    name: "email",
-    label: "Email",
-    placeholder: "email@misol.uz",
-    componentType: "input",
-    type: "email",
-  },
-]
-
 export const loginFormControls = [
   {
-    name: "email",
-    label: "Email",
-    placeholder: "email@misol.uz",
+    name: "login",
+    label: "Telefon raqam yoki foydalanuvchi nomi",
+    placeholder: "+998 90 123 45 67",
     componentType: "input",
-    type: "email",
+    type: "text",
   },
   {
     name: "password",
@@ -99,7 +72,7 @@ export const addProductFormElements = [
     ],
   },
   {
-    label: "Price ($)",
+    label: "Narx (so'm)",
     name: "price",
     componentType: "input",
     type: "number",
@@ -214,13 +187,6 @@ export const addressFormControls = [
 
 export const profileFormControls = [
   {
-    label: "Email",
-    name: "email",
-    componentType: "input",
-    type: "email",
-    placeholder: "email@misol.uz",
-  },
-  {
     label: "Foydalanuvchi nomi",
     name: "username",
     componentType: "input",
@@ -232,6 +198,6 @@ export const profileFormControls = [
     name: "password",
     componentType: "input",
     type: "password",
-    placeholder: "Yangi parolni kiriting"
+    placeholder: "O'zgartirmasangiz, bo'sh qoldiring"
   }
 ]

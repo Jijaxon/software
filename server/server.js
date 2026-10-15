@@ -22,6 +22,8 @@ const dashboardRouter = require("./routes/dashboard/dashboard-routes")
 
 const wishlistRouter = require("./routes/shop/wishlist-routes")
 
+const { startTelegramBot } = require('./telegram/bot')
+
 const app = express()
 const PORT = process.env.PORT || 5000
 
@@ -68,6 +70,7 @@ initializeDatabase()
 	.then(() => {
 		console.log('PostgreSQL connected and tables are ready')
 		app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+		startTelegramBot()
 	})
 	.catch(async (error) => {
 		console.error('PostgreSQL startup failed:', error.message)

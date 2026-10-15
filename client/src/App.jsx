@@ -23,7 +23,6 @@ import Search from "@/pages/shopping-view/search.jsx";
 import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
 import Banner from "@/pages/admin-view/banner.jsx";
 import AuthVerify from "@/pages/auth/verify.jsx";
-import AuthEmailVerify from "@/pages/auth/emailVerify.jsx";
 
 
 function App() {
@@ -52,8 +51,7 @@ function App() {
                element={<AuthLayout/>}>
           <Route path="login" element={<AuthLogin/>}/>
           <Route path="register" element={<AuthRegister/>}/>
-          <Route path="verify-email" element={<AuthVerify/>}/>
-          <Route path="verify" element={<AuthEmailVerify/>}/>
+          <Route path="verify" element={<AuthVerify/>}/>
         </Route>
         <Route path="/admin"
                element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><AdminLayout/></CheckAuth>}>

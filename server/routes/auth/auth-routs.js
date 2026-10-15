@@ -5,7 +5,11 @@ const {
   logoutUser,
   authMiddleware, updateProfile,
   verifyUser,
-  resendVerificationCode
+  resendVerificationCode,
+  getVerificationStatus,
+  getTelegramInfo,
+  requestTelegramLogin,
+  verifyTelegramLogin,
 } = require("../../controllers/auth/auth-controller");
 
 const router = express.Router();
@@ -15,6 +19,10 @@ router.post("/login", loginUser);
 router.post("/logoutUser", logoutUser);
 router.post("/verify", verifyUser)
 router.post("/resend-verification", resendVerificationCode)
+router.get("/verification-status/:token", getVerificationStatus)
+router.get("/telegram-info", getTelegramInfo)
+router.post("/telegram-login/request", requestTelegramLogin)
+router.post("/telegram-login/verify", verifyTelegramLogin)
 router.put("/update", authMiddleware,updateProfile);
 router.get("/check-auth", authMiddleware, (req, res) => {
   const user = req.user;

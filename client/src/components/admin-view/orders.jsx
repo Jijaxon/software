@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {formatPrice} from "@/lib/utils";
 import { Button } from "../ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Dialog } from "../ui/dialog";
@@ -49,7 +50,7 @@ function AdminOrdersView() {
               ? orderList.map((orderItem) => (
                 <TableRow>
                   <TableCell>{orderItem?._id}</TableCell>
-                  <TableCell>{orderItem?.userId?.username}, {orderItem?.userId?.email}</TableCell>
+                  <TableCell>{orderItem?.userId?.username}, {orderItem?.userId?.phone ? `+${orderItem.userId.phone}` : orderItem?.userId?.email}</TableCell>
                   <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
                   {/*<TableCell>
                     <Badge
@@ -64,7 +65,7 @@ function AdminOrdersView() {
                       {orderItem?.orderStatus}
                     </Badge>
                   </TableCell>*/}
-                  <TableCell>${orderItem?.totalAmount}</TableCell>
+                  <TableCell>{formatPrice(orderItem?.totalAmount)}</TableCell>
                   <TableCell>{orderItem?.paymentStatus}</TableCell>
                   <TableCell>
                     <Dialog

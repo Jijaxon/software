@@ -1,4 +1,5 @@
 // import Address from "@/components/shopping-view/address";
+import {formatPrice} from "@/lib/utils";
 // import img from "../../assets/account.jpg";
 // import { useDispatch, useSelector } from "react-redux";
 // import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
@@ -171,8 +172,7 @@ function ShoppingCheckout() {
         productId: item.productId,
         title: item.title,
         image: item.image,
-        // price: item.salePrice > 0 ? item.salePrice : item.price,
-        price: item.price * 100,
+        price: Number(item.price),
         salePrice: item.salePrice,
         quantity: item.quantity,
       })),
@@ -260,11 +260,11 @@ function ShoppingCheckout() {
           <div className="mt-6 space-y-2 border-t border-sand pt-5 text-sm">
             <div className="flex justify-between text-taupe">
               <span>Oraliq summa</span>
-              <span>${totalCartAmount.toFixed(2)}</span>
+              <span>{formatPrice(totalCartAmount)}</span>
             </div>
             <div className="flex items-baseline justify-between pt-2">
               <span className="font-display text-xl font-semibold text-espresso">Jami</span>
-              <span className="font-display text-3xl font-semibold text-espresso">${totalCartAmount.toFixed(2)}</span>
+              <span className="font-display text-3xl font-semibold text-espresso">{formatPrice(totalCartAmount)}</span>
             </div>
           </div>
 

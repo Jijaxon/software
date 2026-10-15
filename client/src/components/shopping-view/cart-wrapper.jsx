@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import {formatPrice} from "@/lib/utils";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
@@ -41,11 +42,11 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           <div className="border-t border-sand bg-white/70 px-6 py-6 backdrop-blur">
             <div className="flex items-center justify-between text-sm text-taupe">
               <span>Oraliq summa</span>
-              <span>${totalCartAmount.toFixed(2)}</span>
+              <span>{formatPrice(totalCartAmount)}</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span className="font-display text-xl font-semibold text-espresso">Jami</span>
-              <span className="font-display text-2xl font-semibold text-espresso">${totalCartAmount.toFixed(2)}</span>
+              <span className="font-display text-2xl font-semibold text-espresso">{formatPrice(totalCartAmount)}</span>
             </div>
             <Button
               onClick={() => {

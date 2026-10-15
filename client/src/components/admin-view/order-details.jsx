@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import {formatPrice, getFinalPrice} from "@/lib/utils";
 import { DialogContent } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
@@ -16,7 +17,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex mt-6 items-center justify-between">
             <p className="font-medium">Order Person</p>
-            <Label>{orderDetails?.userId?.username}, {orderDetails?.userId?.email}</Label>
+            <Label>{orderDetails?.userId?.username}, {orderDetails?.userId?.phone ? `+${orderDetails.userId.phone}` : orderDetails?.userId?.email}</Label>
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Date</p>
@@ -24,7 +25,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Price</p>
-            <Label>${orderDetails?.totalAmount}</Label>
+            <Label>{formatPrice(orderDetails?.totalAmount)}</Label>
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Payment method</p>
@@ -61,7 +62,7 @@ function AdminOrderDetailsView({ orderDetails }) {
                   <li className="flex items-center justify-between">
                     <span>Title: {item.title}</span>
                     <span>Quantity: {item.quantity}</span>
-                    <span>Price: ${item.price}</span>
+                    <span>Price: {formatPrice(getFinalPrice(item.price, item.salePrice))}</span>
                   </li>
                 ))
                 : null}

@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import {formatPrice} from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { toast } from "react-toastify";
@@ -108,11 +109,11 @@ function UserCartItemsContent({ cartItem }) {
           </div>
           <div className="text-right">
             <p className="font-display text-lg font-semibold text-espresso">
-              ${(unitPrice * cartItem?.quantity).toFixed(2)}
+              {formatPrice(unitPrice * cartItem?.quantity)}
             </p>
             {cartItem?.salePrice > 0 ? (
               <p className="text-[11px] text-taupe line-through">
-                ${(Number(cartItem?.price) * cartItem?.quantity).toFixed(2)}
+                {formatPrice(Number(cartItem?.price) * cartItem?.quantity)}
               </p>
             ) : null}
           </div>

@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {formatPrice} from "@/lib/utils";
 import {brandOptionsMap, categoryOptionsMap} from "@/config";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
@@ -130,11 +131,11 @@ function ShoppingProductTile({
         <div className="mt-2 flex items-baseline gap-2">
           {product?.salePrice > 0 ? (
             <>
-              <span className="font-display text-xl font-semibold text-rose-deep">${calculateSale()}</span>
-              <span className="text-sm text-taupe line-through">${Number(product?.price).toFixed(2)}</span>
+              <span className="font-display text-xl font-semibold text-rose-deep">{formatPrice(calculateSale())}</span>
+              <span className="text-sm text-taupe line-through">{formatPrice(product?.price)}</span>
             </>
           ) : (
-            <span className="font-display text-xl font-semibold text-espresso">${Number(product?.price).toFixed(2)}</span>
+            <span className="font-display text-xl font-semibold text-espresso">{formatPrice(product?.price)}</span>
           )}
         </div>
       </div>

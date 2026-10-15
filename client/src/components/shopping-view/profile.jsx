@@ -4,9 +4,10 @@ import {toast} from "react-toastify";
 import {useDispatch, useSelector} from "react-redux";
 import {profileFormControls} from "@/config/index.js";
 import {updateUser} from "@/store/auth-slice/index.js";
+import {Send} from "lucide-react";
+import {formatPhone} from "@/lib/utils";
 
 const initialProfileFormData = {
-  email: "",
   username: "",
   password: "",
 };
@@ -21,26 +22,28 @@ function Profile() {
   useEffect(() => {
     if (user) {
       setFormData({
-        email: user?.email ?? "",
         username: user?.username ?? "",
+        password: "",
       })
     }
   }, []);
 
   function isFormValid() {
-    return Object.keys(formData)
-      .map((key) => formData[key].trim() !== "")
-      .every((item) => item);
+    return formData.username.trim() !== "";
   }
 
   function handleManageProfile(e) {
     e.preventDefault();
 
-    dispatch(updateUser({...formData})).then(({payload}) => {
+    const payloadData = {username: formData.username.trim()};
+    if (formData.password) payloadData.password = formData.password;
+
+    dispatch(updateUser(payloadData)).then(({payload}) => {
       if (payload?.success) {
         toast.success(payload?.message || "Profil yangilandi")
+        setFormData((prev) => ({...prev, password: ""}))
       } else {
-        toast.error("Nimadir xato ketdi. Qayta urinib ko'ring")
+        toast.error(payload?.message || "Nimadir xato ketdi. Qayta urinib ko'ring")
       }
     })
   }
@@ -52,7 +55,12 @@ function Profile() {
           {user?.username?.[0]?.toUpperCase()}
         </div>
         <p className="mt-4 font-display text-2xl font-semibold text-espresso">{user?.username}</p>
-        <p className="mt-1 break-all text-xs text-taupe">{user?.email}</p>
+        <p className="mt-1 break-all text-xs text-taupe">{user?.phone ? formatPhone(user.phone) : user?.email}</p>
+        {user?.phone ? (
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#e5f1fb] px-3 py-1 text-[11px] font-semibold text-[#2481cc]">
+            <Send className="h-3 w-3"/> Telegram ulangan
+          </span>
+        ) : null}
       </div>
       <div>
         <h3 className="mb-5 font-display text-2xl font-semibold text-espresso">Profilni yangilash</h3>

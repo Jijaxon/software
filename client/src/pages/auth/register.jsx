@@ -1,5 +1,6 @@
 import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
+import {Send} from "lucide-react";
 import CommonForm from "@/components/common/form.jsx";
 import {registerFormControls} from "@/config/index.js";
 import {useDispatch} from "react-redux";
@@ -8,26 +9,27 @@ import {toast} from "react-toastify";
 
 const initialState = {
   username: '',
-  email: '',
   password: '',
 }
 
 function AuthRegister() {
   const [formData, setFormData] = useState(initialState);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
   function onSubmit(event) {
     event.preventDefault();
+    setIsSubmitting(true);
     dispatch(registerUser(formData)).then((data) => {
+      setIsSubmitting(false);
       if (data?.payload?.success) {
-        toast.success(data?.payload?.message || "Ro'yxatdan o'tdingiz! Emailingizni tasdiqlang");
-        setTimeout(() => {
-          navigate("/auth/verify-email?email=" + formData.email);
-        }, 200)
+        toast.success(data?.payload?.message);
+        navigate(`/auth/verify?token=${data.payload.token}`, {
+          state: {telegramLink: data.payload.telegramLink},
+        });
       } else if (!data?.payload?.error) {
-        toast.error(data?.payload?.message || "Bu foydalanuvchi allaqachon mavjud");
+        toast.error(data?.payload?.message || "Ro'yxatdan o'tib bo'lmadi. Qayta urinib ko'ring");
       }
     });
   }
@@ -49,11 +51,19 @@ function AuthRegister() {
       <CommonForm
         variant="nafis"
         formControls={registerFormControls}
-        buttonText={"Ro'yxatdan o'tish"}
+        buttonText={isSubmitting ? "Yuborilmoqda..." : "Davom etish"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
+        isBtnDisabled={isSubmitting || !formData.username.trim() || formData.password.length < 6}
       />
+      <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#e5f1fb]/70 p-4 text-xs leading-5 text-[#2b5f8a]">
+        <Send className="mt-0.5 h-4 w-4 shrink-0 text-[#2481cc]"/>
+        <p>
+          Keyingi qadamda hisobingizni <b>Telegram bot</b> orqali tasdiqlaysiz: bot telefon raqamingizni so'raydi
+          va tasdiqlash kodini yuboradi.
+        </p>
+      </div>
     </div>
   );
 }

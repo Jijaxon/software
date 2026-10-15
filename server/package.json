@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
-    "db:init": "node scripts/init-db.js"
+    "db:init": "node scripts/init-db.js",
+    "prices:uzs": "node scripts/convert-prices-to-uzs.js"
   },
   "author": "Salimova Azizaxon",
   "license": "ISC",

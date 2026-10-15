@@ -1,4 +1,5 @@
 import {useDispatch, useSelector} from "react-redux";
+import {formatPrice} from "@/lib/utils";
 import {useEffect} from "react";
 import {getDashboard} from "@/store/admin/dashboard-slice/index.js";
 import StatsCard from "@/components/admin-view/stats-card.jsx";
@@ -42,7 +43,7 @@ function AdminDashboard() {
           <StatsCard title="Total Users" value={dashboard?.totalUsers}/>
           <StatsCard title="Total Products" value={dashboard?.totalProducts}/>
           <StatsCard title="Total Orders" value={dashboard?.totalOrders}/>
-          <StatsCard title="Total Revenue" value={`$${dashboard?.totalRevenue}`}/>
+          <StatsCard title="Total Revenue" value={formatPrice(dashboard?.totalRevenue)}/>
         </div>
 
         {/* Pie Chart */}

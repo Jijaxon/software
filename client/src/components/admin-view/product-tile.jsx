@@ -1,4 +1,5 @@
 import React from 'react';
+import {formatPrice} from "@/lib/utils";
 import {Card, CardContent, CardFooter} from "../ui/card"
 import {Button} from "@/components/ui/button.jsx";
 import instance from "@/utils/axios.js";
@@ -38,10 +39,10 @@ const AdminProductTile = ({product, setFormData, setOpenCreateProductsDialog, se
                 product?.salePrice > 0 ? "line-through" : ""
               } text-lg font-semibold text-primary`}
             >
-              ${product?.price}
+              {formatPrice(product?.price)}
             </span>
             {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">${calculateSale()}</span>
+              <span className="text-lg font-bold">{formatPrice(calculateSale())}</span>
             ) : null}
           </div>
         </CardContent>

@@ -1,4 +1,5 @@
 import { ShoppingBag, X } from "lucide-react";
+import {formatPrice} from "@/lib/utils";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
@@ -51,9 +52,9 @@ function UserWishlistItemsContent({ wishlistItem }) {
         </div>
         <div className="flex items-center justify-between gap-2">
           <div>
-            <span className="font-display text-lg font-semibold text-espresso">${finalPrice.toFixed(2)}</span>
+            <span className="font-display text-lg font-semibold text-espresso">{formatPrice(finalPrice)}</span>
             {wishlistItem?.salePrice > 0 ? (
-              <span className="ml-2 text-[11px] text-taupe line-through">${Number(wishlistItem?.price).toFixed(2)}</span>
+              <span className="ml-2 text-[11px] text-taupe line-through">{formatPrice(wishlistItem?.price)}</span>
             ) : null}
           </div>
           <Button

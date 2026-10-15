@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username TEXT NOT NULL UNIQUE,
-  email TEXT NOT NULL UNIQUE,
+  email TEXT UNIQUE,
   password TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'user',
   verify BOOLEAN NOT NULL DEFAULT FALSE,
@@ -109,3 +109,18 @@ CREATE INDEX IF NOT EXISTS addresses_user_id_idx ON addresses(user_id);
 CREATE INDEX IF NOT EXISTS orders_user_id_idx ON orders(user_id);
 CREATE INDEX IF NOT EXISTS orders_payment_status_idx ON orders(payment_status);
 CREATE INDEX IF NOT EXISTS reviews_product_id_idx ON reviews(product_id);
+
+-- Telegram bot orqali ro'yxatdan o'tish va kirish
+ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_chat_id BIGINT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_username TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_link_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS code_expires_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS code_sent_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS code_attempts INTEGER NOT NULL DEFAULT 0;
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_phone_verified_key ON users(phone) WHERE verify AND phone IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_chat_verified_key ON users(telegram_chat_id) WHERE verify AND telegram_chat_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_link_token_key ON users(telegram_link_token);
+CREATE INDEX IF NOT EXISTS users_telegram_chat_id_idx ON users(telegram_chat_id);

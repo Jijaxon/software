@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {formatPrice} from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, PackageOpen } from "lucide-react";
 import { Button } from "../ui/button";
@@ -55,8 +56,8 @@ function ShoppingOrders() {
               <div className="w-36">
                 <OrderStatusBadge status={orderItem?.orderStatus} />
               </div>
-              <div className="w-24 text-right">
-                <p className="font-display text-xl font-semibold text-espresso">${Number(orderItem?.totalAmount || 0).toFixed(2)}</p>
+              <div className="w-36 text-right">
+                <p className="font-display text-xl font-semibold text-espresso">{formatPrice(orderItem?.totalAmount)}</p>
               </div>
               <ChevronRight className="h-5 w-5 text-taupe transition-transform duration-300 group-hover:translate-x-1 group-hover:text-rose-deep" />
             </button>

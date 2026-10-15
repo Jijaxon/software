@@ -7,118 +7,73 @@ const initialState = {
   user: null,
 };
 
-export const registerUser = createAsyncThunk(
+// Barcha auth so'rovlari bir xil tuzilishda: javob payload sifatida qaytadi
+function createAuthThunk(type, request) {
+  return createAsyncThunk(type, async (formData, thunkAPI) => {
+    try {
+      const {data} = await request(formData);
+      return data;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
+    }
+  });
+}
+
+export const registerUser = createAuthThunk(
   "/auth/register",
-
-  async (formData, thunkAPI) => {
-    try {
-      const {data} = await instance.post(
-        "/auth/register",
-        formData,
-        {
-          withCredentials: true,
-        }
-      );
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
-
-  }
+  (formData) => instance.post("/auth/register", formData)
 );
 
-export const verifyUser = createAsyncThunk(
+export const verifyUser = createAuthThunk(
   "/auth/verifyUser",
-
-  async (formData, thunkAPI) => {
-    try {
-      const {data} = await instance.post(
-        "/auth/verify",
-        formData,
-        {
-          withCredentials: true,
-        }
-      );
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
-  }
+  (formData) => instance.post("/auth/verify", formData)
 );
 
-export const resendVerificationCode = createAsyncThunk(
+export const resendVerificationCode = createAuthThunk(
   "/auth/resendVerificationCode",
-
-  async (formData, thunkAPI) => {
-    try {
-      const {data} = await instance.post(
-        "/auth/resend-verification",
-        formData,
-        {
-          withCredentials: true,
-        }
-      );
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
-  }
+  (formData) => instance.post("/auth/resend-verification", formData)
 );
 
-export const loginUser = createAsyncThunk(
+export const getVerificationStatus = createAuthThunk(
+  "/auth/getVerificationStatus",
+  (token) => instance.get(`/auth/verification-status/${token}`)
+);
+
+export const getTelegramInfo = createAuthThunk(
+  "/auth/getTelegramInfo",
+  () => instance.get("/auth/telegram-info")
+);
+
+export const loginUser = createAuthThunk(
   "/auth/login",
-
-  async (formData, thunkAPI) => {
-    try {
-      const {data} = await instance.post(
-        "/auth/login",
-        formData,
-        {
-          withCredentials: true,
-        }
-      );
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
-  }
+  (formData) => instance.post("/auth/login", formData)
 );
 
-export const updateUser = createAsyncThunk(
-  "/auth/updateUser",
+export const requestTelegramLogin = createAuthThunk(
+  "/auth/requestTelegramLogin",
+  (formData) => instance.post("/auth/telegram-login/request", formData)
+);
 
-  async (formData, thunkAPI) => {
-    try {
-      const {data} = await instance.put(
-        "/auth/update",
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-          },
-        }
-      );
-      return data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e?.response?.data || e.message)
-    }
-  }
+export const verifyTelegramLogin = createAuthThunk(
+  "/auth/verifyTelegramLogin",
+  (formData) => instance.post("/auth/telegram-login/verify", formData)
+);
+
+export const updateUser = createAuthThunk(
+  "/auth/updateUser",
+  (formData) => instance.put("/auth/update", formData, {
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    },
+  })
 );
 
 export const logoutUser = createAsyncThunk(
   "/auth/logoutUser",
 
-  async (thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
-      const {data} = await instance.post(
-        "/auth/logoutUser",
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      const {data} = await instance.post("/auth/logoutUser", {});
 
       window.location.reload()
       return data;
@@ -132,12 +87,11 @@ export const logoutUser = createAsyncThunk(
 export const checkAuth = createAsyncThunk(
   "/auth/checkauth",
 
-  async (thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
       const {data} = await instance.get(
         "/auth/check-auth",
         {
-          withCredentials: true,
           headers: {
             "Cache-Control":
               "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -151,75 +105,34 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
+// Muvaffaqiyatli kirishdan so'ng foydalanuvchini saqlash
+function applyLogin(state, action) {
+  if (action.payload?.success && action.payload?.user) {
+    state.user = action.payload.user;
+    state.isAuthenticated = true;
+  }
+}
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
     setUser: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = Boolean(action.payload);
     },
   },
   extraReducers: (builder) => {
+    // Eslatma: isLoading faqat ilova ochilgandagi checkAuth uchun —
+    // aks holda har bir so'rovda butun sahifa yuklanish ekraniga almashadi
     builder
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(verifyUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(verifyUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(verifyUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(resendVerificationCode.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(resendVerificationCode.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(resendVerificationCode.rejected, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.success ? action.payload.user : null;
-        state.isAuthenticated = action.payload.success;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(updateUser.pending, (state) => {
-        state.isLoading = true;
-      })
+      .addCase(verifyUser.fulfilled, applyLogin)
+      .addCase(loginUser.fulfilled, applyLogin)
+      .addCase(verifyTelegramLogin.fulfilled, applyLogin)
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-      })
-      .addCase(updateUser.rejected, (state, action) => {
-        state.isLoading = false;
+        if (action.payload?.success && action.payload?.user) {
+          state.user = {...state.user, ...action.payload.user};
+        }
       })
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
@@ -229,12 +142,12 @@ const authSlice = createSlice({
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
       })
-      .addCase(checkAuth.rejected, (state, action) => {
+      .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
       })
-      .addCase(logoutUser.fulfilled, (state, action) => {
+      .addCase(logoutUser.fulfilled, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;

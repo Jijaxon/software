@@ -3,6 +3,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const { pool } = require('../../db');
 const { toRecord, toRecords } = require('../../db/records');
 
+// Narxlar bazada so'mda saqlanadi. Stripe valyutasi .env orqali tanlanadi:
+// STRIPE_CURRENCY=uzs (standart) yoki usd (UZS_PER_USD kursi bo'yicha hisoblanadi)
+const STRIPE_CURRENCY = (process.env.STRIPE_CURRENCY || 'uzs').toLowerCase();
+const UZS_PER_USD = Number(process.env.UZS_PER_USD) || 12700;
+
+function toStripeAmount(amountInUzs) {
+  const amount = STRIPE_CURRENCY === 'uzs' ? amountInUzs : amountInUzs / UZS_PER_USD;
+  return Math.round(amount * 100);
+}
+
 const createOrder = async (req, res) => {
   try {
     const { userId, cartItems, addressInfo, paymentMethod, totalAmount, cartId } = req.body;
@@ -14,15 +24,15 @@ const createOrder = async (req, res) => {
       mode: 'payment',
       line_items: cartItems.map((item) => ({
         price_data: {
-          currency: 'usd',
+          currency: STRIPE_CURRENCY,
           product_data: { name: item.title },
-          unit_amount: Math.round(Number(item.price) * (1 - Number(item.salePrice || 0) / 100) * 100),
+          unit_amount: toStripeAmount(Number(item.price) * (1 - Number(item.salePrice || 0) / 100)),
         },
         quantity: item.quantity,
       })),
       success_url: 'http://localhost:5173/shop/success?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: 'http://localhost:5173/shop/cancel',
-      customer_email: addressInfo?.email || 'guest@example.com',
+      ...(addressInfo?.email ? { customer_email: addressInfo.email } : {}),
     });
     const newOrder = toRecord((await pool.query(
       `INSERT INTO orders (user_id, cart_id, cart_items, address_info, order_status, payment_method,
