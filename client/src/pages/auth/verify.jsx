@@ -5,6 +5,7 @@ import {useDispatch} from "react-redux";
 import {toast} from "react-toastify";
 import {Button} from "@/components/ui/button.jsx";
 import OtpInput from "@/components/auth/otp-input.jsx";
+import TelegramBotLink from "@/components/auth/telegram-bot-link.jsx";
 import {getVerificationStatus, resendVerificationCode, verifyUser} from "@/store/auth-slice/index.js";
 import {useCountdown} from "@/lib/use-countdown.js";
 
@@ -223,6 +224,14 @@ function AuthVerify() {
           ) : null}
         </Step>
       </div>
+
+      {/* Ulanmagan bo'lsa, 1-qadamdagi token havolasi ishlatiladi */}
+      {isLinked ? (
+        <TelegramBotLink
+          label={isPhoneShared ? "Kodni ko'rish uchun botni ochish" : "Telegram botga o'tish"}
+          className="mt-6"
+        />
+      ) : null}
 
       <p className="mt-6 text-center text-xs text-taupe">
         Kod bot orqali keladi. Uni hech kimga bermang.

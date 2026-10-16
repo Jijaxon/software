@@ -6,6 +6,17 @@ const { callTelegram, sendMessage, getBotInfo, isTelegramConfigured } = require(
 const { normalizePhone, formatPhone, getCooldownSeconds, issueCode, CODE_TTL_MINUTES } = require('./codes');
 
 const POLL_TIMEOUT_SECONDS = 30;
+const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+
+// setMyCommands va /help shu ro'yxatdan quriladi
+const botCommands = [
+  { command: 'start', description: 'Botni ishga tushirish' },
+  { command: 'kod', description: 'Yangi tasdiqlash kodini olish' },
+  { command: 'kirish', description: 'Saytga Telegram orqali kirish' },
+  { command: 'profil', description: 'Ulangan hisob ma\'lumotlari' },
+  { command: 'sayt', description: 'Sayt havolalari' },
+  { command: 'help', description: 'Yordam' },
+];
 
 const contactKeyboard = {
   keyboard: [[{ text: "📱 Telefon raqamni yuborish", request_contact: true }]],
@@ -40,10 +51,37 @@ const texts = {
   cooldown: (seconds) => `⏳ Yangi kodni ${seconds} soniyadan so'ng olishingiz mumkin.`,
   help:
     "ℹ️ <b>Yordam</b>\n\n" +
-    "/start — botni ishga tushirish\n" +
-    "/kod — yangi tasdiqlash kodini olish\n" +
-    "/help — yordam\n\n" +
-    `Kodlar ${CODE_TTL_MINUTES} daqiqa amal qiladi. Kodni hech kimga bermang — NAFIS xodimlari uni hech qachon so'ramaydi.`,
+    botCommands.map(({ command, description }) => `/${command} — ${description.toLowerCase()}`).join('\n') +
+    `\n\nKodlar ${CODE_TTL_MINUTES} daqiqa amal qiladi. Kodni hech kimga bermang — NAFIS xodimlari uni hech qachon so'ramaydi.`,
+  login: (user) =>
+    "🔑 <b>Saytga kirish</b>\n\n" +
+    `1. ${CLIENT_URL}/auth/login sahifasini oching\n` +
+    "2. «Telegram kod» bo'limini tanlang\n" +
+    `3. Raqamingizni kiriting: <b>${formatPhone(user.phone)}</b>\n` +
+    "4. Shu botga kelgan 6 xonali kodni saytga kiriting\n\n" +
+    "Parolingizni bilsangiz, «Parol bilan» bo'limidan ham kirishingiz mumkin.",
+  profile: (user) =>
+    "👤 <b>Hisobingiz</b>\n\n" +
+    `Foydalanuvchi nomi: <b>${escapeHtml(user.username)}</b>\n` +
+    `Telefon: <b>${formatPhone(user.phone) || '—'}</b>\n` +
+    (user.email ? `Email: <b>${escapeHtml(user.email)}</b>\n` : '') +
+    "Holat: ✅ tasdiqlangan",
+  pendingProfile: (user) =>
+    "👤 <b>Hisobingiz</b>\n\n" +
+    `Foydalanuvchi nomi: <b>${escapeHtml(user.username)}</b>\n` +
+    `Telefon: <b>${user.phone ? formatPhone(user.phone) : '—'}</b>\n` +
+    "Holat: ⏳ tasdiqlanmagan\n\n" +
+    (user.phone
+      ? "Botga kelgan kodni saytdagi tasdiqlash sahifasiga kiriting. Yangi kod uchun — /kod"
+      : "Pastdagi tugma orqali telefon raqamingizni yuboring."),
+  notLinked:
+    "Bu Telegram akkaunt hali NAFIS hisobiga ulanmagan.\n\n" +
+    `Ro'yxatdan o'tish: ${CLIENT_URL}/auth/register`,
+  site:
+    "🌸 <b>NAFIS</b>\n\n" +
+    `🛍 Do'kon: ${CLIENT_URL}/shop/home\n` +
+    `🔑 Kirish: ${CLIENT_URL}/auth/login\n` +
+    `📝 Ro'yxatdan o'tish: ${CLIENT_URL}/auth/register`,
 };
 
 function escapeHtml(value) {
@@ -161,6 +199,38 @@ async function handleResendCommand(message) {
   await issueCode(user, 'verify');
 }
 
+// /kirish — ulangan hisob uchun saytga kirish yo'riqnomasi
+async function handleLoginCommand(message) {
+  const chatId = message.chat.id;
+  const linked = await findVerifiedByChat(chatId);
+  if (linked) {
+    await sendMessage(chatId, texts.login(linked));
+    return;
+  }
+  const pending = await findPendingByChat(chatId);
+  await sendMessage(chatId, pending ? texts.pendingProfile(pending) : texts.notLinked);
+}
+
+// /profil — shu chatga ulangan hisob
+async function handleProfileCommand(message) {
+  const chatId = message.chat.id;
+  const linked = await findVerifiedByChat(chatId);
+  if (linked) {
+    await sendMessage(chatId, texts.profile(linked));
+    return;
+  }
+  const pending = await findPendingByChat(chatId);
+  if (!pending) {
+    await sendMessage(chatId, texts.notLinked);
+    return;
+  }
+  await sendMessage(
+    chatId,
+    texts.pendingProfile(pending),
+    pending.phone ? {} : { reply_markup: contactKeyboard }
+  );
+}
+
 async function handleMessage(message) {
   if (!message || message.chat?.type !== 'private') return;
 
@@ -180,6 +250,18 @@ async function handleMessage(message) {
     case '/kod':
     case '/code':
       await handleResendCommand(message);
+      break;
+    case '/kirish':
+    case '/login':
+      await handleLoginCommand(message);
+      break;
+    case '/profil':
+    case '/me':
+      await handleProfileCommand(message);
+      break;
+    case '/sayt':
+    case '/site':
+      await sendMessage(message.chat.id, texts.site);
       break;
     case '/help':
     case '/yordam':
@@ -239,13 +321,7 @@ async function startTelegramBot() {
     const info = await getBotInfo();
     // Webhook o'rnatilgan bo'lsa, getUpdates ishlamaydi
     await callTelegram('deleteWebhook', { drop_pending_updates: false });
-    await callTelegram('setMyCommands', {
-      commands: [
-        { command: 'start', description: 'Botni ishga tushirish' },
-        { command: 'kod', description: 'Yangi tasdiqlash kodini olish' },
-        { command: 'help', description: 'Yordam' },
-      ],
-    });
+    await callTelegram('setMyCommands', { commands: botCommands });
     isRunning = true;
     pollUpdates();
     console.log(`[telegram] @${info.username} boti ishga tushdi`);

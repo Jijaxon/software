@@ -8,6 +8,7 @@ import {useDispatch} from "react-redux";
 import {Button} from "@/components/ui/button.jsx";
 import PhoneInput from "@/components/auth/phone-input.jsx";
 import OtpInput from "@/components/auth/otp-input.jsx";
+import TelegramBotLink from "@/components/auth/telegram-bot-link.jsx";
 import {
   getTelegramInfo,
   loginUser,
@@ -214,6 +215,13 @@ function AuthLogin() {
       </div>
 
       {activeTab === "telegram" ? <TelegramLogin/> : <PasswordLogin/>}
+
+      <div className="my-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">
+        <span className="h-px flex-1 bg-sand"/>
+        yoki
+        <span className="h-px flex-1 bg-sand"/>
+      </div>
+      <TelegramBotLink/>
     </div>
   );
 }

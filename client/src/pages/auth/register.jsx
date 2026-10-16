@@ -6,6 +6,7 @@ import {registerFormControls} from "@/config/index.js";
 import {useDispatch} from "react-redux";
 import {registerUser} from "@/store/auth-slice/index.js";
 import {toast} from "react-toastify";
+import TelegramBotLink from "@/components/auth/telegram-bot-link.jsx";
 
 const initialState = {
   username: '',
@@ -64,6 +65,7 @@ function AuthRegister() {
           va tasdiqlash kodini yuboradi.
         </p>
       </div>
+      <TelegramBotLink className="mt-4"/>
     </div>
   );
 }
