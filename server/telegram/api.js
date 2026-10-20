@@ -1,5 +1,13 @@
 // Telegram Bot API bilan ishlash uchun yengil yordamchi (qo'shimcha kutubxonasiz)
 
+// Ba'zi tarmoqlarda Node (undici) ishlamaydigan IPv6 manzilni tanlab "fetch failed"
+// xatosini beradi — IPv4'ni afzal ko'rsak, bu muammo bartaraf bo'ladi.
+try {
+  require('dns').setDefaultResultOrder('ipv4first');
+} catch {
+  // eski Node versiyalarida bu funksiya bo'lmasligi mumkin — e'tiborsiz qoldiramiz
+}
+
 const TELEGRAM_API_URL = 'https://api.telegram.org';
 
 let botInfo = null;
@@ -16,21 +24,35 @@ async function callTelegram(method, params = {}, { signal } = {}) {
   const token = getToken();
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN .env faylida ko\'rsatilmagan');
 
-  const response = await fetch(`${TELEGRAM_API_URL}/bot${token}/${method}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-    signal,
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!data.ok) {
-    const error = new Error(data.description || `Telegram API xatosi: ${method}`);
-    error.code = data.error_code || response.status;
-    error.retryAfter = data.parameters?.retry_after;
-    throw error;
+  // Signal berilmagan bo'lsa, so'rov cheksiz osilib qolmasligi uchun o'zimiz to'xtatamiz.
+  // Uzun so'rovlar (getUpdates timeout=N) uchun N + 10s kutamiz, aks holda 20s.
+  let timer;
+  if (!signal) {
+    const controller = new AbortController();
+    signal = controller.signal;
+    const waitMs = (params.timeout ? params.timeout + 10 : 20) * 1000;
+    timer = setTimeout(() => controller.abort(), waitMs);
   }
-  return data.result;
+
+  try {
+    const response = await fetch(`${TELEGRAM_API_URL}/bot${token}/${method}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+      signal,
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!data.ok) {
+      const error = new Error(data.description || `Telegram API xatosi: ${method}`);
+      error.code = data.error_code || response.status;
+      error.retryAfter = data.parameters?.retry_after;
+      throw error;
+    }
+    return data.result;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 function sendMessage(chatId, text, extra = {}) {

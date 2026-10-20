@@ -327,8 +327,11 @@ async function handleMessage(message) {
 
 let isRunning = false;
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function pollUpdates() {
   let offset = 0;
+  let failures = 0; // ketma-ket tarmoq xatolari soni
 
   while (isRunning) {
     try {
@@ -337,6 +340,11 @@ async function pollUpdates() {
         timeout: POLL_TIMEOUT_SECONDS,
         allowed_updates: ['message'],
       });
+
+      if (failures > 0) {
+        console.log('[telegram] Telegram bilan aloqa tiklandi, polling davom etmoqda');
+        failures = 0;
+      }
 
       for (const update of updates) {
         offset = update.update_id + 1;
@@ -351,9 +359,22 @@ async function pollUpdates() {
       }
     } catch (error) {
       // 409 — boshqa nusxa ham polling qilmoqda (masalan, nodemon qayta ishga tushganda)
-      const delay = error.retryAfter ? error.retryAfter * 1000 : 5000;
-      if (error.code !== 409) console.error('[telegram] getUpdates xatosi:', error.message);
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      if (error.code === 409) {
+        await sleep(error.retryAfter ? error.retryAfter * 1000 : 5000);
+        continue;
+      }
+
+      // Tarmoq xatolari ("fetch failed" va h.k.) ko'p takrorlanishi mumkin —
+      // konsolni to'ldirmaslik uchun faqat birinchi va har 10-chi xatoni log qilamiz.
+      failures += 1;
+      if (failures === 1 || failures % 10 === 0) {
+        console.error(
+          `[telegram] Telegram'ga ulanib bo'lmadi (${failures}-urinish): ${error.message}. ` +
+          `Internet/Telegram aloqasi tekshirilmoqda, avtomatik qayta urinilmoqda...`
+        );
+      }
+      // Bosqichma-bosqich kutish: 2s, 4s, ... 30s gacha
+      await sleep(Math.min(30000, 2000 * failures));
     }
   }
 }
