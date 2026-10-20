@@ -1,7 +1,6 @@
 import { useSelector } from "react-redux";
 import { MapPin, Package, UserRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import accImg from "../../assets/account.jpg";
 import Address from "@/components/shopping-view/address";
 import ShoppingOrders from "@/components/shopping-view/orders";
 import Profile from "@/components/shopping-view/profile.jsx";
@@ -12,6 +11,9 @@ const tabs = [
   { value: "profile", label: "Profil", icon: UserRound },
 ];
 
+const bannerImage =
+  "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=2200&q=85";
+
 function ShoppingAccount() {
   const { user } = useSelector((state) => state.auth);
 
@@ -20,7 +22,7 @@ function ShoppingAccount() {
       <section className="px-3 pt-3 md:px-6 md:pt-4">
         <div className="relative h-[260px] overflow-hidden rounded-[32px] md:h-[320px]">
           <img
-            src={accImg}
+            src={bannerImage}
             alt=""
             className="h-full w-full animate-ken-burns object-cover object-center"
           />
