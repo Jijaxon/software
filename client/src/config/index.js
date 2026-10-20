@@ -147,28 +147,49 @@ export const sortOptions = [
   {id: "title-ztoa", label: "Nomi: Z dan A gacha"},
 ];
 
+// Hozircha faqat Toshkent shahri
+export const cityOptions = [
+  {id: "Toshkent sh.", label: "Toshkent sh."},
+];
+
+// Toshkent shahridagi tumanlar
+export const tashkentDistricts = [
+  "Bektemir",
+  "Chilonzor",
+  "Mirobod",
+  "Mirzo Ulug'bek",
+  "Olmazor",
+  "Sergeli",
+  "Shayxontohur",
+  "Uchtepa",
+  "Yakkasaroy",
+  "Yangihayot",
+  "Yashnobod",
+  "Yunusobod",
+];
+
+export const districtOptions = tashkentDistricts.map((name) => ({id: name, label: name}));
+
 // Yetkazib berish (address formasi)
 export const addressFormControls = [
+  {
+    label: "Shahar",
+    name: "city",
+    componentType: "select",
+    options: cityOptions,
+  },
+  {
+    label: "Tuman",
+    name: "district",
+    componentType: "select",
+    options: districtOptions,
+  },
   {
     label: "Manzil",
     name: "address",
     componentType: "input",
     type: "text",
     placeholder: "Ko'cha, uy, xonadon",
-  },
-  {
-    label: "Shahar",
-    name: "city",
-    componentType: "input",
-    type: "text",
-    placeholder: "Masalan, Toshkent",
-  },
-  {
-    label: "Pochta indeksi",
-    name: "pincode",
-    componentType: "input",
-    type: "text",
-    placeholder: "100000",
   },
   {
     label: "Telefon raqami",
@@ -178,7 +199,7 @@ export const addressFormControls = [
     placeholder: "+998 90 123 45 67",
   },
   {
-    label: "Izoh",
+    label: "Izoh (ixtiyoriy)",
     name: "notes",
     componentType: "textarea",
     placeholder: "Yetkazib berish bo'yicha qo'shimcha izoh",
@@ -187,7 +208,7 @@ export const addressFormControls = [
 
 export const profileFormControls = [
   {
-    label: "Foydalanuvchi nomi",
+    label: "Ism (ixtiyoriy)",
     name: "username",
     componentType: "input",
     type: "text",

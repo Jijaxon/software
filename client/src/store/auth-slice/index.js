@@ -59,6 +59,21 @@ export const verifyTelegramLogin = createAuthThunk(
   (formData) => instance.post("/auth/telegram-login/verify", formData)
 );
 
+export const requestPasswordReset = createAuthThunk(
+  "/auth/requestPasswordReset",
+  (formData) => instance.post("/auth/forgot-password/request", formData)
+);
+
+export const verifyPasswordResetCode = createAuthThunk(
+  "/auth/verifyPasswordResetCode",
+  (formData) => instance.post("/auth/forgot-password/verify", formData)
+);
+
+export const resetPassword = createAuthThunk(
+  "/auth/resetPassword",
+  (formData) => instance.post("/auth/forgot-password/reset", formData)
+);
+
 export const updateUser = createAuthThunk(
   "/auth/updateUser",
   (formData) => instance.put("/auth/update", formData, {
@@ -129,6 +144,7 @@ const authSlice = createSlice({
       .addCase(verifyUser.fulfilled, applyLogin)
       .addCase(loginUser.fulfilled, applyLogin)
       .addCase(verifyTelegramLogin.fulfilled, applyLogin)
+      .addCase(resetPassword.fulfilled, applyLogin)
       .addCase(updateUser.fulfilled, (state, action) => {
         if (action.payload?.success && action.payload?.user) {
           state.user = {...state.user, ...action.payload.user};

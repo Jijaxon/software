@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import {formatPrice, getFinalPrice} from "@/lib/utils";
+import {displayName, formatPrice, getFinalPrice} from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { DialogContent, DialogTitle } from "../ui/dialog";
 import OrderStatusBadge from "./order-status";
@@ -68,11 +68,10 @@ function ShoppingOrderDetailsView({ orderDetails }) {
           <MapPin className="h-3.5 w-3.5" /> Yetkazib berish
         </h4>
         <div className="grid gap-0.5 text-sm text-mocha">
-          <span className="font-semibold text-espresso">{user?.username}</span>
+          <span className="font-semibold text-espresso">{displayName(user)}</span>
           <span>{orderDetails?.addressInfo?.address}</span>
           <span>
-            {orderDetails?.addressInfo?.city}
-            {orderDetails?.addressInfo?.pincode ? `, ${orderDetails?.addressInfo?.pincode}` : ""}
+            {[orderDetails?.addressInfo?.district, orderDetails?.addressInfo?.city].filter(Boolean).join(", ")}
           </span>
           <span>{orderDetails?.addressInfo?.phone}</span>
           {orderDetails?.addressInfo?.notes ? (

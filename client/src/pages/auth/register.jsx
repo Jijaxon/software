@@ -1,28 +1,27 @@
 import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
-import {Send} from "lucide-react";
-import CommonForm from "@/components/common/form.jsx";
-import {registerFormControls} from "@/config/index.js";
+import {Loader2, Send} from "lucide-react";
 import {useDispatch} from "react-redux";
 import {registerUser} from "@/store/auth-slice/index.js";
 import {toast} from "react-toastify";
+import {Button} from "@/components/ui/button.jsx";
+import PhoneInput from "@/components/auth/phone-input.jsx";
 import TelegramBotLink from "@/components/auth/telegram-bot-link.jsx";
 
-const initialState = {
-  username: '',
-  password: '',
-}
-
 function AuthRegister() {
-  const [formData, setFormData] = useState(initialState);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const isValid = phone.length === 9 && password.length >= 6;
+
   function onSubmit(event) {
     event.preventDefault();
+    if (!isValid || isSubmitting) return;
     setIsSubmitting(true);
-    dispatch(registerUser(formData)).then((data) => {
+    dispatch(registerUser({phone: `998${phone}`, password})).then((data) => {
       setIsSubmitting(false);
       if (data?.payload?.success) {
         toast.success(data?.payload?.message);
@@ -49,20 +48,42 @@ function AuthRegister() {
           </Link>
         </p>
       </div>
-      <CommonForm
-        variant="nafis"
-        formControls={registerFormControls}
-        buttonText={isSubmitting ? "Yuborilmoqda..." : "Davom etish"}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onSubmit}
-        isBtnDisabled={isSubmitting || !formData.username.trim() || formData.password.length < 6}
-      />
+
+      <form onSubmit={onSubmit} className="animate-fade-up">
+        <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">
+          Telefon raqam
+        </label>
+        <PhoneInput value={phone} onChange={setPhone} autoFocus disabled={isSubmitting}/>
+
+        <label htmlFor="password" className="mb-2 mt-5 block text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">
+          Parol
+        </label>
+        <input
+          id="password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          disabled={isSubmitting}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Kamida 6 ta belgi"
+          className="h-12 w-full rounded-2xl border border-sand bg-white px-4 text-sm text-espresso outline-none transition-all duration-300 placeholder:text-taupe/70 focus:border-petal focus:ring-4 focus:ring-blush disabled:opacity-60"
+        />
+
+        <Button
+          type="submit"
+          disabled={!isValid || isSubmitting}
+          className="mt-6 h-12 w-full rounded-full bg-espresso text-sm font-semibold text-ivory transition-all duration-300 hover:-translate-y-0.5 hover:bg-mocha disabled:translate-y-0 disabled:opacity-60"
+        >
+          {isSubmitting ? <Loader2 className="animate-spin"/> : null}
+          {isSubmitting ? "Yuborilmoqda..." : "Davom etish"}
+        </Button>
+      </form>
+
       <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#e5f1fb]/70 p-4 text-xs leading-5 text-[#2b5f8a]">
         <Send className="mt-0.5 h-4 w-4 shrink-0 text-[#2481cc]"/>
         <p>
-          Keyingi qadamda hisobingizni <b>Telegram bot</b> orqali tasdiqlaysiz: bot telefon raqamingizni so'raydi
-          va tasdiqlash kodini yuboradi.
+          Keyingi qadamda hisobingizni <b>Telegram bot</b> orqali tasdiqlaysiz: botga kirgan telefon raqamingizni
+          yuborasiz va tasdiqlash kodini olasiz.
         </p>
       </div>
       <TelegramBotLink className="mt-4"/>

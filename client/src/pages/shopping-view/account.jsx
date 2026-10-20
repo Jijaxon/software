@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Address from "@/components/shopping-view/address";
 import ShoppingOrders from "@/components/shopping-view/orders";
 import Profile from "@/components/shopping-view/profile.jsx";
+import { displayName } from "@/lib/utils";
 
 const tabs = [
   { value: "orders", label: "Buyurtmalar", icon: Package },
@@ -31,7 +32,7 @@ function ShoppingAccount() {
             <div className="text-white">
               <p className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.25em] text-blush">Shaxsiy kabinet</p>
               <h1 className="mt-2 animate-fade-up font-display text-5xl font-medium [animation-delay:100ms] md:text-6xl">
-                Salom, <em className="text-petal">{user?.username}</em>
+                Salom, <em className="text-petal">{displayName(user)}</em>
               </h1>
             </div>
           </div>

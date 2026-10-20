@@ -13,6 +13,7 @@ const botCommands = [
   { command: 'start', description: 'Botni ishga tushirish' },
   { command: 'kod', description: 'Yangi tasdiqlash kodini olish' },
   { command: 'kirish', description: 'Saytga Telegram orqali kirish' },
+  { command: 'forgot', description: 'Parolni tiklash kodini olish' },
   { command: 'profil', description: 'Ulangan hisob ma\'lumotlari' },
   { command: 'sayt', description: 'Sayt havolalari' },
   { command: 'help', description: 'Yordam' },
@@ -33,15 +34,18 @@ const texts = {
     "Ro'yxatdan o'tish uchun saytdagi <b>«Ro'yxatdan o'tish»</b> sahifasidan boshlang — u yerdagi tugma sizni shu botga olib keladi.",
   linkExpired:
     "⏳ Havola eskirgan yoki noto'g'ri.\n\nIltimos, saytga qaytib ro'yxatdan o'tishni qaytadan boshlang yoki hisobingizga kiring.",
-  alreadyVerified: (username) =>
-    `✅ Bu Telegram akkaunt <b>${escapeHtml(username)}</b> hisobiga ulangan.\n\n` +
+  alreadyVerified: (user) =>
+    `✅ Bu Telegram akkaunt <b>${escapeHtml(accountName(user))}</b> hisobiga ulangan.\n\n` +
     "Saytga kirish uchun «Telegram orqali kirish»ni tanlang — kod shu yerga keladi.",
   chatTaken:
     "⚠️ Bu Telegram akkaunt boshqa NAFIS hisobiga ulangan. Saytga o'sha hisob bilan kiring.",
-  askContact: (username) =>
-    `Salom, <b>${escapeHtml(username)}</b>! 👋\n\n` +
+  askContact: (user) =>
+    `Salom, <b>${escapeHtml(accountName(user))}</b>! 👋\n\n` +
     "Ro'yxatdan o'tishni yakunlash uchun pastdagi tugma orqali telefon raqamingizni yuboring.",
   foreignContact: "❗️ Iltimos, pastdagi tugma orqali <b>o'zingizning</b> raqamingizni yuboring.",
+  phoneMismatch: (expected) =>
+    `❗️ Yuborilgan raqam ro'yxatdan o'tishda kiritilgan raqamga mos kelmadi.\n\n` +
+    `Iltimos, <b>${formatPhone(expected)}</b> raqamiga tegishli Telegram akkauntdan yoki shu raqamni yuboring.`,
   noPending:
     "Avval saytda ro'yxatdan o'ting — u yerdagi «Telegram'da tasdiqlash» tugmasi sizni shu botga olib keladi.",
   phoneTaken: (phone) =>
@@ -62,14 +66,14 @@ const texts = {
     "Parolingizni bilsangiz, «Parol bilan» bo'limidan ham kirishingiz mumkin.",
   profile: (user) =>
     "👤 <b>Hisobingiz</b>\n\n" +
-    `Foydalanuvchi nomi: <b>${escapeHtml(user.username)}</b>\n` +
     `Telefon: <b>${formatPhone(user.phone) || '—'}</b>\n` +
+    (user.username ? `Ism: <b>${escapeHtml(user.username)}</b>\n` : '') +
     (user.email ? `Email: <b>${escapeHtml(user.email)}</b>\n` : '') +
     "Holat: ✅ tasdiqlangan",
   pendingProfile: (user) =>
     "👤 <b>Hisobingiz</b>\n\n" +
-    `Foydalanuvchi nomi: <b>${escapeHtml(user.username)}</b>\n` +
     `Telefon: <b>${user.phone ? formatPhone(user.phone) : '—'}</b>\n` +
+    (user.username ? `Ism: <b>${escapeHtml(user.username)}</b>\n` : '') +
     "Holat: ⏳ tasdiqlanmagan\n\n" +
     (user.phone
       ? "Botga kelgan kodni saytdagi tasdiqlash sahifasiga kiriting. Yangi kod uchun — /kod"
@@ -77,6 +81,13 @@ const texts = {
   notLinked:
     "Bu Telegram akkaunt hali NAFIS hisobiga ulanmagan.\n\n" +
     `Ro'yxatdan o'tish: ${CLIENT_URL}/auth/register`,
+  forgotNotLinked:
+    "Parolni tiklash uchun avval shu Telegram akkaunt NAFIS hisobingizga ulangan bo'lishi kerak.\n\n" +
+    `Agar hisobingiz bo'lsa, u bilan bir marta kiring yoki ro'yxatdan o'ting: ${CLIENT_URL}/auth/register`,
+  forgotSent: (user) =>
+    "🔄 <b>Parolni tiklash</b>\n\n" +
+    `Tiklash kodi quyida yuborildi. Uni saytdagi parolni tiklash sahifasiga kiriting:\n${CLIENT_URL}/auth/forgot\n\n` +
+    `Raqamingiz: <b>${formatPhone(user.phone)}</b>`,
   site:
     "🌸 <b>NAFIS</b>\n\n" +
     `🛍 Do'kon: ${CLIENT_URL}/shop/home\n` +
@@ -86,6 +97,11 @@ const texts = {
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Ko'rsatish uchun ism: foydalanuvchi nomi bo'lmasa, telefon raqam ishlatiladi
+function accountName(user) {
+  return user?.username || formatPhone(user?.phone) || 'foydalanuvchi';
 }
 
 async function findUser(query, params) {
@@ -109,7 +125,7 @@ async function handleStart(message, payload) {
 
   if (!payload) {
     const linked = await findVerifiedByChat(chatId);
-    await sendMessage(chatId, linked ? texts.alreadyVerified(linked.username) : texts.welcome);
+    await sendMessage(chatId, linked ? texts.alreadyVerified(linked) : texts.welcome);
     return;
   }
 
@@ -139,7 +155,7 @@ async function handleStart(message, payload) {
     [chatId, message.from?.username || null, user.id]
   );
 
-  await sendMessage(chatId, texts.askContact(user.username), { reply_markup: contactKeyboard });
+  await sendMessage(chatId, texts.askContact(user), { reply_markup: contactKeyboard });
 }
 
 // Foydalanuvchi telefon raqamini yuborganda
@@ -155,13 +171,20 @@ async function handleContact(message) {
   const user = await findPendingByChat(chatId);
   if (!user) {
     const linked = await findVerifiedByChat(chatId);
-    await sendMessage(chatId, linked ? texts.alreadyVerified(linked.username) : texts.noPending, {
+    await sendMessage(chatId, linked ? texts.alreadyVerified(linked) : texts.noPending, {
       reply_markup: { remove_keyboard: true },
     });
     return;
   }
 
   const phone = normalizePhone(contact.phone_number);
+
+  // Ro'yxatdan o'tishda kiritilgan raqam bilan yuborilgan raqam mos kelishi shart
+  if (user.phone && user.phone !== phone) {
+    await sendMessage(chatId, texts.phoneMismatch(user.phone), { reply_markup: contactKeyboard });
+    return;
+  }
+
   const owner = await findUser(
     'SELECT id FROM users WHERE phone = $1 AND verify = TRUE AND id <> $2 LIMIT 1',
     [phone, user.id]
@@ -183,11 +206,11 @@ async function handleResendCommand(message) {
 
   if (!user) {
     const linked = await findVerifiedByChat(chatId);
-    await sendMessage(chatId, linked ? texts.alreadyVerified(linked.username) : texts.noPending);
+    await sendMessage(chatId, linked ? texts.alreadyVerified(linked) : texts.noPending);
     return;
   }
   if (!user.phone) {
-    await sendMessage(chatId, texts.askContact(user.username), { reply_markup: contactKeyboard });
+    await sendMessage(chatId, texts.askContact(user), { reply_markup: contactKeyboard });
     return;
   }
 
@@ -197,6 +220,26 @@ async function handleResendCommand(message) {
     return;
   }
   await issueCode(user, 'verify');
+}
+
+// /forgot — ulangan hisob uchun parolni tiklash kodini yuborish
+async function handleForgotCommand(message) {
+  const chatId = message.chat.id;
+  const user = await findVerifiedByChat(chatId);
+
+  if (!user) {
+    await sendMessage(chatId, texts.forgotNotLinked);
+    return;
+  }
+
+  const wait = getCooldownSeconds(user);
+  if (wait > 0) {
+    await sendMessage(chatId, texts.cooldown(wait));
+    return;
+  }
+
+  await sendMessage(chatId, texts.forgotSent(user));
+  await issueCode(user, 'reset');
 }
 
 // /kirish — ulangan hisob uchun saytga kirish yo'riqnomasi
@@ -255,6 +298,10 @@ async function handleMessage(message) {
     case '/login':
       await handleLoginCommand(message);
       break;
+    case '/forgot':
+    case '/parol':
+      await handleForgotCommand(message);
+      break;
     case '/profil':
     case '/me':
       await handleProfileCommand(message);
@@ -270,7 +317,7 @@ async function handleMessage(message) {
     default: {
       const pending = await findPendingByChat(message.chat.id);
       if (pending && !pending.phone) {
-        await sendMessage(message.chat.id, texts.askContact(pending.username), { reply_markup: contactKeyboard });
+        await sendMessage(message.chat.id, texts.askContact(pending), { reply_markup: contactKeyboard });
       } else {
         await sendMessage(message.chat.id, texts.help);
       }

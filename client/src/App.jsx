@@ -23,6 +23,7 @@ import Search from "@/pages/shopping-view/search.jsx";
 import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
 import Banner from "@/pages/admin-view/banner.jsx";
 import AuthVerify from "@/pages/auth/verify.jsx";
+import AuthForgotPassword from "@/pages/auth/forgot-password.jsx";
 
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
           <Route path="login" element={<AuthLogin/>}/>
           <Route path="register" element={<AuthRegister/>}/>
           <Route path="verify" element={<AuthVerify/>}/>
+          <Route path="forgot" element={<AuthForgotPassword/>}/>
         </Route>
         <Route path="/admin"
                element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><AdminLayout/></CheckAuth>}>

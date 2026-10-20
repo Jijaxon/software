@@ -3,9 +3,10 @@ const { toRecord, toRecords } = require("../../db/records");
 
 const addAddress = async (req, res) => {
   try {
-    const { userId, address, city, pincode, phone, notes } = req.body;
+    const { userId, address, city, district, phone, notes } = req.body;
 
-    if (!userId || !address || !city || !pincode || !phone || !notes) {
+    // Izoh ixtiyoriy; shahar, tuman, manzil va telefon majburiy
+    if (!userId || !address || !city || !district || !phone) {
       return res.status(400).json({
         success: false,
         message: "Invalid data provided!",
@@ -13,8 +14,8 @@ const addAddress = async (req, res) => {
     }
 
     const newlyCreatedAddress = toRecord((await pool.query(
-      'INSERT INTO addresses (user_id, address, city, pincode, notes, phone) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [userId, address, city, pincode, notes, phone]
+      'INSERT INTO addresses (user_id, address, city, district, notes, phone) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [userId, address, city, district, notes || '', phone]
     )).rows[0]);
 
     res.status(201).json({
@@ -67,7 +68,7 @@ const editAddress = async (req, res) => {
       });
     }
 
-    const fields = ['address', 'city', 'pincode', 'phone', 'notes'];
+    const fields = ['address', 'city', 'district', 'phone', 'notes'];
     const updates = fields.filter((field) => formData[field] !== undefined);
     const values = updates.map((field) => formData[field]);
     const setClause = updates.map((field, index) => `${field} = $${index + 1}`).join(', ');

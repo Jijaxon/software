@@ -180,7 +180,7 @@ function ShoppingCheckout() {
         addressId: currentSelectedAddress?._id,
         address: currentSelectedAddress?.address,
         city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
+        district: currentSelectedAddress?.district,
         phone: currentSelectedAddress?.phone,
         notes: currentSelectedAddress?.notes,
       },

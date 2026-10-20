@@ -21,3 +21,8 @@ export function formatPhone(phone) {
   const match = /^998(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(phone || "");
   return match ? `+998 ${match[1]} ${match[2]} ${match[3]} ${match[4]}` : phone ? `+${phone}` : "";
 }
+
+// Ko'rsatish uchun ism: foydalanuvchi nomi bo'lmasa, telefon raqam ishlatiladi
+export function displayName(user) {
+  return user?.username || formatPhone(user?.phone) || user?.email || "Foydalanuvchi";
+}

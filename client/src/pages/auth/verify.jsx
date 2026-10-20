@@ -8,6 +8,7 @@ import OtpInput from "@/components/auth/otp-input.jsx";
 import TelegramBotLink from "@/components/auth/telegram-bot-link.jsx";
 import {getVerificationStatus, resendVerificationCode, verifyUser} from "@/store/auth-slice/index.js";
 import {useCountdown} from "@/lib/use-countdown.js";
+import {formatPhone} from "@/lib/utils";
 
 const STATUS_POLL_MS = 3000;
 
@@ -139,9 +140,9 @@ function AuthVerify() {
         <h1 className="mt-3 font-display text-5xl font-medium leading-tight text-espresso">
           Telegram orqali tasdiqlang
         </h1>
-        {status?.username ? (
+        {status?.phone || status?.username ? (
           <p className="mt-3 text-sm text-taupe">
-            Hisob: <b className="font-semibold text-espresso">{status.username}</b>
+            Hisob: <b className="font-semibold text-espresso">{status.phone ? formatPhone(status.phone) : status.username}</b>
           </p>
         ) : null}
       </div>

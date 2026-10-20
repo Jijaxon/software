@@ -105,6 +105,9 @@ CREATE TABLE IF NOT EXISTS features (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Manzilga tuman qo'shildi; pochta indeksi endi ishlatilmaydi (ixtiyoriy/eski)
+ALTER TABLE addresses ADD COLUMN IF NOT EXISTS district TEXT;
+
 CREATE INDEX IF NOT EXISTS addresses_user_id_idx ON addresses(user_id);
 CREATE INDEX IF NOT EXISTS orders_user_id_idx ON orders(user_id);
 CREATE INDEX IF NOT EXISTS orders_payment_status_idx ON orders(payment_status);
@@ -124,3 +127,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_phone_verified_key ON users(phone) WHERE
 CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_chat_verified_key ON users(telegram_chat_id) WHERE verify AND telegram_chat_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS users_telegram_link_token_key ON users(telegram_link_token);
 CREATE INDEX IF NOT EXISTS users_telegram_chat_id_idx ON users(telegram_chat_id);
+
+-- Telefon raqam asosiy identifikatorga aylandi; foydalanuvchi nomi endi ixtiyoriy (faqat ko'rsatish uchun)
+ALTER TABLE users ALTER COLUMN username DROP NOT NULL;
+-- Yuborilgan kodning maqsadi: 'verify' | 'login' | 'reset' (parolni tiklash kodini ajratish uchun)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS code_purpose TEXT;

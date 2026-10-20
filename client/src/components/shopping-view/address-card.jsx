@@ -34,8 +34,7 @@ function AddressCard({
         <div className="min-w-0 space-y-1 text-sm">
           <p className="font-semibold text-espresso">{addressInfo?.address}</p>
           <p className="text-mocha/80">
-            {addressInfo?.city}
-            {addressInfo?.pincode ? `, ${addressInfo?.pincode}` : ""}
+            {[addressInfo?.district, addressInfo?.city].filter(Boolean).join(", ")}
           </p>
           <p className="flex items-center gap-1.5 text-mocha/80">
             <Phone className="h-3.5 w-3.5" /> {addressInfo?.phone}

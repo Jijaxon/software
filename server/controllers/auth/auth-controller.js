@@ -86,42 +86,48 @@ const getTelegramInfo = async (req, res) => {
   }
 };
 
-//register
+//register — telefon raqam va parol bilan (foydalanuvchi nomi talab qilinmaydi)
 const registerUser = async (req, res) => {
   try {
-    const username = String(req.body.username || '').trim();
+    const phone = normalizePhone(req.body.phone);
     const password = String(req.body.password || '');
 
-    if (!username || !password) {
-      return res.json({ success: false, message: "Barcha maydonlarni to'ldiring" });
+    if (!phone || !password) {
+      return res.json({ success: false, message: "Telefon raqam va parolni kiriting" });
     }
-    if (username.length < 3 || username.length > 32) {
-      return res.json({ success: false, message: "Foydalanuvchi nomi 3–32 belgidan iborat bo'lsin" });
+    if (!isValidUzPhone(phone)) {
+      return res.json({ success: false, message: "Telefon raqamni to'g'ri kiriting" });
     }
     if (password.length < 6) {
       return res.json({ success: false, message: "Parol kamida 6 belgidan iborat bo'lsin" });
     }
 
-    const hashPassword = await bcrypt.hash(password, 12);
-    const linkToken = generateLinkToken();
-    const existing = await findUser('SELECT * FROM users WHERE LOWER(username) = LOWER($1)', [username]);
-
-    if (existing?.verify) {
-      return res.json({ success: false, message: "Bu foydalanuvchi nomi band. Boshqasini tanlang" });
+    const existingVerified = await findUser('SELECT id FROM users WHERE phone = $1 AND verify = TRUE', [phone]);
+    if (existingVerified) {
+      return res.json({ success: false, message: "Bu telefon raqam bilan hisob allaqachon mavjud. Kirish sahifasidan foydalaning" });
     }
 
+    const hashPassword = await bcrypt.hash(password, 12);
+    const linkToken = generateLinkToken();
+
+    // Shu raqam bilan tasdiqlanmay qolgan ro'yxatdan o'tish bo'lsa, uni qaytadan boshlaymiz
+    const existing = await findUser(
+      'SELECT * FROM users WHERE phone = $1 AND verify = FALSE ORDER BY updated_at DESC LIMIT 1',
+      [phone]
+    );
+
     if (existing) {
-      // Tasdiqlanmay qolgan ro'yxatdan o'tishni qayta boshlaymiz
       await pool.query(
-        `UPDATE users SET username = $1, password = $2, telegram_link_token = $3, verification_code = '',
-         code_expires_at = NULL, code_attempts = 0, updated_at = NOW() WHERE id = $4`,
-        [username, hashPassword, linkToken, existing.id]
+        `UPDATE users SET password = $1, telegram_link_token = $2, verification_code = '',
+         code_expires_at = NULL, code_sent_at = NULL, code_attempts = 0, code_purpose = NULL,
+         telegram_chat_id = NULL, updated_at = NOW() WHERE id = $3`,
+        [hashPassword, linkToken, existing.id]
       );
     } else {
       await pool.query(
-        `INSERT INTO users (username, password, verify, verification_code, telegram_link_token)
+        `INSERT INTO users (phone, password, verify, verification_code, telegram_link_token)
          VALUES ($1, $2, FALSE, '', $3)`,
-        [username, hashPassword, linkToken]
+        [phone, hashPassword, linkToken]
       );
     }
 
@@ -133,7 +139,7 @@ const registerUser = async (req, res) => {
     });
   } catch (e) {
     if (e.code === '23505') {
-      return res.json({ success: false, message: "Bu foydalanuvchi nomi band. Boshqasini tanlang" });
+      return res.json({ success: false, message: "Bu telefon raqam bilan hisob allaqachon mavjud. Kirish sahifasidan foydalaning" });
     }
     console.error("Register Error:", e.message);
     res.status(500).json({ success: false, message: "Serverda xatolik yuz berdi" });
@@ -153,8 +159,10 @@ const getVerificationStatus = async (req, res) => {
     res.json({
       success: true,
       username: user.username,
+      phone: user.phone,
       telegramLinked: Boolean(user.telegramChatId),
-      phoneShared: Boolean(user.phone),
+      // Bot kontaktni qabul qilib, tasdiqlash kodini yuborgach rost bo'ladi
+      phoneShared: Boolean(user.codeSentAt && user.codePurpose === 'verify'),
       telegramLink: await buildTelegramLink(user.telegramLinkToken),
       cooldown: getCooldownSeconds(user),
     });
@@ -243,7 +251,7 @@ const resendVerificationCode = async (req, res) => {
 
 //login — telefon raqam (yoki foydalanuvchi nomi / email) va parol bilan
 const loginUser = async (req, res) => {
-  const login = String(req.body.login || req.body.email || '').trim();
+  const login = String(req.body.phone || req.body.login || req.body.email || '').trim();
   const password = String(req.body.password || '');
 
   try {
@@ -345,6 +353,105 @@ const verifyTelegramLogin = async (req, res) => {
   }
 };
 
+// Parolni tiklash topadigan foydalanuvchi: tasdiqlangan va Telegram'ga ulangan
+function findResettableUser(phone) {
+  return findUser(
+    'SELECT * FROM users WHERE phone = $1 AND verify = TRUE AND telegram_chat_id IS NOT NULL',
+    [phone]
+  );
+}
+
+// Parolni tiklash: 1-qadam — Telegram orqali tiklash kodini so'rash
+const requestPasswordReset = async (req, res) => {
+  const phone = normalizePhone(req.body.phone);
+
+  try {
+    if (!isValidUzPhone(phone)) {
+      return res.json({ success: false, message: "Telefon raqamni to'g'ri kiriting" });
+    }
+
+    const user = await findResettableUser(phone);
+    if (!user) {
+      return res.json({ success: false, message: "Bu raqam bilan Telegram'ga ulangan hisob topilmadi" });
+    }
+
+    const wait = getCooldownSeconds(user);
+    if (wait > 0) {
+      return res.json({ success: false, cooldown: wait, message: `Yangi kodni ${wait} soniyadan so'ng so'rashingiz mumkin` });
+    }
+
+    await issueCode(user, 'reset');
+    res.json({ success: true, cooldown: 60, message: "Parolni tiklash kodi Telegram'ga yuborildi" });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, message: "Kodni yuborib bo'lmadi. Botni bloklamaganingizni tekshiring" });
+  }
+};
+
+// Parolni tiklash: 2-qadam — kodni tekshirish, qisqa muddatli tiklash tokenini berish
+const verifyPasswordResetCode = async (req, res) => {
+  const phone = normalizePhone(req.body.phone);
+
+  try {
+    const user = await findResettableUser(phone);
+    if (!user) {
+      return res.json({ success: false, message: "Bu raqam bilan Telegram'ga ulangan hisob topilmadi" });
+    }
+
+    if (user.codePurpose !== 'reset') {
+      return res.json({ success: false, message: "Avval Telegram botda /forgot buyrug'i orqali tiklash kodini oling" });
+    }
+
+    const result = await checkCode(user, req.body.code);
+    if (!result.ok) return res.json({ success: false, message: result.message });
+
+    const resetToken = jwt.sign({ id: user.id, purpose: 'reset' }, JWT_SECRET, { expiresIn: "10m" });
+    res.json({ success: true, resetToken, message: "Kod tasdiqlandi. Endi yangi parol o'rnating" });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, message: "Serverda xatolik yuz berdi" });
+  }
+};
+
+// Parolni tiklash: 3-qadam — yangi parolni o'rnatish va tizimga kiritish
+const resetPassword = async (req, res) => {
+  const resetToken = String(req.body.resetToken || '');
+  const password = String(req.body.password || '');
+
+  try {
+    if (password.length < 6) {
+      return res.json({ success: false, message: "Parol kamida 6 belgidan iborat bo'lsin" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, JWT_SECRET);
+    } catch {
+      return res.json({ success: false, message: "Tiklash muddati tugagan. Qaytadan kod oling" });
+    }
+    if (decoded.purpose !== 'reset') {
+      return res.json({ success: false, message: "Tiklash tokeni noto'g'ri" });
+    }
+
+    const user = await findUser('SELECT * FROM users WHERE id = $1 AND verify = TRUE', [decoded.id]);
+    if (!user) {
+      return res.json({ success: false, message: "Hisob topilmadi" });
+    }
+
+    const hashPassword = await bcrypt.hash(password, 12);
+    const updatedUser = toRecord((await pool.query(
+      `UPDATE users SET password = $1, verification_code = '', code_expires_at = NULL,
+       code_attempts = 0, code_purpose = NULL, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [hashPassword, user.id]
+    )).rows[0]);
+
+    sendAuthCookie(res, updatedUser, "Parol yangilandi. Xush kelibsiz!");
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, message: "Serverda xatolik yuz berdi" });
+  }
+};
+
 //update profile
 const updateProfile = async (req, res) => {
   try {
@@ -431,4 +538,7 @@ module.exports = {
   getTelegramInfo,
   requestTelegramLogin,
   verifyTelegramLogin,
+  requestPasswordReset,
+  verifyPasswordResetCode,
+  resetPassword,
 };

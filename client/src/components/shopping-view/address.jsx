@@ -6,12 +6,16 @@ import {useDispatch, useSelector} from "react-redux";
 import {addNewAddress, deleteAddress, editaAddress, fetchAllAddresses,} from "@/store/shop/address-slice";
 import AddressCard from "./address-card";
 import {toast} from "react-toastify";
+import {formatPhone} from "@/lib/utils";
+
+// Majburiy maydonlar (izoh ixtiyoriy)
+const requiredFields = ["city", "district", "address", "phone"];
 
 const initialAddressFormData = {
+  city: "Toshkent sh.",
+  district: "",
   address: "",
-  city: "",
   phone: "",
-  pincode: "",
   notes: "",
 };
 
@@ -22,11 +26,19 @@ function Address({setCurrentSelectedAddress, selectedId}) {
   const {user} = useSelector((state) => state.auth);
   const {addressList} = useSelector((state) => state.shopAddress);
 
+  // Formani boshlang'ich holatga qaytaradi (telefon raqam avtomatik to'ldiriladi)
+  function resetForm() {
+    setFormData({
+      ...initialAddressFormData,
+      phone: user?.phone ? formatPhone(user.phone) : "",
+    });
+  }
+
   function handleManageAddress(event) {
     event.preventDefault();
 
     if (addressList.length >= 3 && currentEditedId === null) {
-      setFormData(initialAddressFormData);
+      resetForm();
       toast.warning("Ko'pi bilan 3 ta manzil qo'shish mumkin");
       return;
     }
@@ -42,7 +54,7 @@ function Address({setCurrentSelectedAddress, selectedId}) {
         if (data?.payload?.success) {
           dispatch(fetchAllAddresses(user?.id));
           setCurrentEditedId(null);
-          setFormData(initialAddressFormData);
+          resetForm();
           toast.success("Manzil yangilandi");
         }
       })
@@ -54,7 +66,7 @@ function Address({setCurrentSelectedAddress, selectedId}) {
       ).then((data) => {
         if (data?.payload?.success) {
           dispatch(fetchAllAddresses(user?.id));
-          setFormData(initialAddressFormData);
+          resetForm();
           toast.success("Manzil qo'shildi");
         }
       });
@@ -74,24 +86,28 @@ function Address({setCurrentSelectedAddress, selectedId}) {
   function handleEditAddress(getCuurentAddress) {
     setCurrentEditedId(getCuurentAddress?._id);
     setFormData({
-      ...formData,
-      address: getCuurentAddress?.address,
-      city: getCuurentAddress?.city,
-      phone: getCuurentAddress?.phone,
-      pincode: getCuurentAddress?.pincode,
-      notes: getCuurentAddress?.notes,
+      city: getCuurentAddress?.city || "Toshkent sh.",
+      district: getCuurentAddress?.district || "",
+      address: getCuurentAddress?.address || "",
+      phone: getCuurentAddress?.phone || "",
+      notes: getCuurentAddress?.notes || "",
     });
   }
 
   function isFormValid() {
-    return Object.keys(formData)
-      .map((key) => formData[key].trim() !== "")
-      .every((item) => item);
+    return requiredFields.every((key) => (formData[key] || "").trim() !== "");
   }
 
   useEffect(() => {
     dispatch(fetchAllAddresses(user?.id));
   }, [dispatch]);
+
+  // Foydalanuvchining telefon raqami bo'lsa, yangi manzil formasiga avtomatik qo'yiladi
+  useEffect(() => {
+    if (currentEditedId === null && user?.phone) {
+      setFormData((prev) => (prev.phone ? prev : {...prev, phone: formatPhone(user.phone)}));
+    }
+  }, [user?.phone, currentEditedId]);
 
   return (
     <div className="@container">

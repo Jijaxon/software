@@ -1,8 +1,6 @@
 import {Link, useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {ArrowLeft, KeyRound, Loader2, Send} from "lucide-react";
-import CommonForm from "@/components/common/form.jsx";
-import {loginFormControls} from "@/config/index.js";
 import {toast} from "react-toastify";
 import {useDispatch} from "react-redux";
 import {Button} from "@/components/ui/button.jsx";
@@ -17,11 +15,6 @@ import {
 } from "@/store/auth-slice/index.js";
 import {formatPhone} from "@/lib/utils";
 import {useCountdown} from "@/lib/use-countdown.js";
-
-const initialState = {
-  login: '',
-  password: '',
-}
 
 const tabs = [
   {id: "telegram", label: "Telegram kod", icon: Send},
@@ -140,15 +133,19 @@ function TelegramLogin() {
 }
 
 function PasswordLogin() {
-  const [formData, setFormData] = useState(initialState)
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate()
 
+  const isValid = phone.length === 9 && password.length > 0;
+
   function onSubmit(event) {
     event.preventDefault();
+    if (!isValid || isSubmitting) return;
     setIsSubmitting(true);
-    dispatch(loginUser(formData)).then(data => {
+    dispatch(loginUser({phone: `998${phone}`, password})).then(data => {
       setIsSubmitting(false);
       const payload = data?.payload;
       if (payload?.success) {
@@ -158,26 +155,46 @@ function PasswordLogin() {
         toast.info(payload.message);
         navigate(`/auth/verify?token=${payload.token}`, {state: {telegramLink: payload.telegramLink}});
       } else if (!payload?.error) {
-        toast.error(payload?.message || "Login yoki parol noto'g'ri");
+        toast.error(payload?.message || "Telefon raqam yoki parol noto'g'ri");
       }
     });
   }
 
   return (
-    <div className="animate-fade-up">
-      <CommonForm
-        variant="nafis"
-        formControls={loginFormControls}
-        buttonText={isSubmitting ? "Kirilmoqda..." : "Kirish"}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onSubmit}
-        isBtnDisabled={isSubmitting || !formData.login.trim() || !formData.password}
+    <form onSubmit={onSubmit} className="animate-fade-up">
+      <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">
+        Telefon raqam
+      </label>
+      <PhoneInput value={phone} onChange={setPhone} autoFocus disabled={isSubmitting}/>
+
+      <div className="mb-2 mt-5 flex items-center justify-between">
+        <label htmlFor="password" className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">
+          Parol
+        </label>
+        <Link to="/auth/forgot" className="nav-link text-xs font-semibold text-rose-deep">
+          Parolni unutdingizmi?
+        </Link>
+      </div>
+      <input
+        id="password"
+        type="password"
+        autoComplete="current-password"
+        value={password}
+        disabled={isSubmitting}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Parolingizni kiriting"
+        className="h-12 w-full rounded-2xl border border-sand bg-white px-4 text-sm text-espresso outline-none transition-all duration-300 placeholder:text-taupe/70 focus:border-petal focus:ring-4 focus:ring-blush disabled:opacity-60"
       />
-      <p className="mt-4 text-center text-xs text-taupe">
-        Parolni unutdingizmi? «Telegram kod» orqali kiring.
-      </p>
-    </div>
+
+      <Button
+        type="submit"
+        disabled={!isValid || isSubmitting}
+        className="mt-6 h-12 w-full rounded-full bg-espresso text-sm font-semibold text-ivory transition-all duration-300 hover:-translate-y-0.5 hover:bg-mocha disabled:translate-y-0 disabled:opacity-60"
+      >
+        {isSubmitting ? <Loader2 className="animate-spin"/> : null}
+        {isSubmitting ? "Kirilmoqda..." : "Kirish"}
+      </Button>
+    </form>
   );
 }
 

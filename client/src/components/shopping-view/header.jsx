@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {Avatar, AvatarFallback} from "../ui/avatar";
+import {displayName} from "@/lib/utils";
 import {logoutUser} from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
 import {useEffect, useState} from "react";
@@ -212,7 +213,7 @@ function HeaderRightContent() {
             <button className="ml-1 rounded-full outline-none ring-offset-2 ring-offset-ivory transition-transform duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-rose">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-gradient-to-br from-petal to-rose text-sm font-semibold text-white">
-                  {user?.username?.[0]?.toUpperCase()}
+                  {displayName(user)?.replace(/^\+/, "")?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </button>
@@ -220,7 +221,7 @@ function HeaderRightContent() {
           <DropdownMenuContent align="end" sideOffset={10} className="w-60 rounded-2xl border-sand p-2 shadow-xl shadow-mocha/10">
             <DropdownMenuLabel className="px-3 py-2">
               <span className="block text-xs font-normal text-taupe">Xush kelibsiz</span>
-              <span className="block truncate font-display text-lg font-semibold text-espresso">{user?.username}</span>
+              <span className="block truncate font-display text-lg font-semibold text-espresso">{displayName(user)}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-sand"/>
             <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 focus:bg-blush/60" onClick={() => navigate("/shop/account")}>

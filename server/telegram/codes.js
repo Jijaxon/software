@@ -54,6 +54,10 @@ const codeMessages = {
     `🔑 <b>NAFIS</b> — saytga kirish kodi:\n\n<code>${code}</code>\n\n` +
     `Kod ${CODE_TTL_MINUTES} daqiqa amal qiladi.\n` +
     `⚠️ Agar siz kirmoqchi bo'lmasangiz, bu xabarga e'tibor bermang.`,
+  reset: (code) =>
+    `🔄 <b>NAFIS</b> — parolni tiklash kodi:\n\n<code>${code}</code>\n\n` +
+    `Kodni saytdagi parolni tiklash sahifasiga kiriting. Kod ${CODE_TTL_MINUTES} daqiqa amal qiladi.\n` +
+    `⚠️ Agar siz so'ramagan bo'lsangiz, bu xabarga e'tibor bermang.`,
 };
 
 // Yangi kod yaratib, bazaga (xeshlangan holda) yozadi va Telegram orqali yuboradi
@@ -62,8 +66,8 @@ async function issueCode(user, purpose = 'verify') {
 
   await pool.query(
     `UPDATE users SET verification_code = $1, code_expires_at = NOW() + ($2 || ' minutes')::interval,
-     code_sent_at = NOW(), code_attempts = 0, updated_at = NOW() WHERE id = $3`,
-    [hashCode(code), String(CODE_TTL_MINUTES), user.id]
+     code_sent_at = NOW(), code_attempts = 0, code_purpose = $3, updated_at = NOW() WHERE id = $4`,
+    [hashCode(code), String(CODE_TTL_MINUTES), purpose, user.id]
   );
 
   if (!isTelegramConfigured() || !user.telegramChatId) {
