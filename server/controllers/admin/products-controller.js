@@ -2,6 +2,14 @@ const { pool } = require("../../db");
 const { toRecord, toRecords } = require("../../db/records");
 const {deleteFiles} = require("../../middleware/upload");
 
+// Bo'sh/noto'g'ri qiymatlarni NUMERIC ustunlar uchun null ga aylantiradi
+// ("" yoki undefined NUMERIC ga yozilsa Postgres xato beradi)
+function toNum(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isNaN(n) ? null : n;
+}
+
 //add a new product
 const addProduct = async (req, res) => {
   try {
@@ -26,7 +34,7 @@ const addProduct = async (req, res) => {
     const newlyCreatedProduct = toRecord((await pool.query(
       `INSERT INTO products (image, title, description, category, brand, price, sale_price, total_stock, average_review)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [imagePath, title, description, category, brand, price, salePrice, totalStock, averageReview]
+      [imagePath, title, description, category, brand, toNum(price), toNum(salePrice), toNum(totalStock), toNum(averageReview)]
     )).rows[0]);
     res.status(201).json({
       success: true,
@@ -89,7 +97,7 @@ const editProduct = async (req, res) => {
 
       // eski rasmni o‘chir
       if (findProduct.image) {
-        await deleteFiles(findProduct.image);
+        await deleteFiles([findProduct.image]);
       }
 
       findProduct.image = newImagePath;
@@ -101,8 +109,10 @@ const editProduct = async (req, res) => {
        WHERE id = $10 RETURNING *`,
       [newImagePath || findProduct.image, title || findProduct.title, description || findProduct.description,
         category || findProduct.category, brand || findProduct.brand,
-        price === "" ? 0 : price || findProduct.price, salePrice === "" ? 0 : salePrice || findProduct.salePrice,
-        totalStock ?? findProduct.totalStock, averageReview ?? findProduct.averageReview, id]
+        toNum(price) ?? findProduct.price,
+        salePrice === "" ? 0 : (toNum(salePrice) ?? findProduct.salePrice),
+        toNum(totalStock) ?? findProduct.totalStock,
+        toNum(averageReview) ?? findProduct.averageReview, id]
     )).rows[0]);
     res.status(200).json({
       success: true,
