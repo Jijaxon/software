@@ -30,10 +30,21 @@ const { startTelegramBot } = require('./telegram/bot')
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Ruxsat etilgan originlar: CORS_ORIGIN (vergul bilan) yoki CLIENT_URL, aks holda localhost.
+// Bir xil domendan (nginx orqasida) kelgan so'rovlarga ham ruxsat beriladi.
+const allowedOrigins = (process.env.CORS_ORIGIN || process.env.CLIENT_URL || 'http://localhost:5173')
+	.split(',')
+	.map((o) => o.trim())
+	.filter(Boolean);
+
 app.use(
 	cors(
     {
-		origin: 'http://localhost:5173',
+		origin: (origin, callback) => {
+			// origin yo'q (same-origin, curl, mobil) yoki ro'yxatda bo'lsa — ruxsat
+			if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+			return callback(new Error('Not allowed by CORS'));
+		},
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: [
 			'Content-Type',

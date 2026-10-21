@@ -1,0 +1,96 @@
+services:
+  # ---- Ma'lumotlar bazasi (PostgreSQL) ----
+  cosmetic_postgres:
+    image: postgres:16-alpine
+    container_name: cosmetic_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cosmetic}
+    volumes:
+      - cosmetic_pgdata:/var/lib/postgresql/data
+    # Host'ga port CHIQARILMAGAN — faqat ichki tarmoqda. Tashqaridan DB'ga
+    # to'g'ridan-to'g'ri kirib bo'lmaydi (xavfsizroq).
+    expose:
+      - "5432"
+    restart: unless-stopped
+    networks:
+      - cosmetic_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-cosmetic}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # ---- Backend (Node.js / Express) ----
+  cosmetic_backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: cosmetic-backend:latest
+    container_name: cosmetic_backend
+    env_file:
+      - ./.env
+    environment:
+      # Bu ikkisi .env'dagini bekor qiladi — nginx va DB manzili doim bir xil bo'lsin
+      - PORT=5000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@cosmetic_postgres:5432/${POSTGRES_DB:-cosmetic}
+    # Host'ga port CHIQARILMAGAN — faqat cosmetic_web_network ichida nginx
+    # uchun `cosmetic_backend:5000` sifatida ko'rinadi.
+    expose:
+      - "5000"
+    volumes:
+      # Yuklangan rasmlar (bannerlar, mahsulotlar, kategoriya/brend) saqlanib qoladi.
+      # :z — SELinux'li hostlarda (RHEL/Alma/Centos) kerak, boshqa joyda zararsiz.
+      - ./server/uploads:/app/uploads:z
+    depends_on:
+      cosmetic_postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cosmetic_internal
+      - cosmetic_web_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5000/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # ---- Frontend (React + Vite -> nginx static) ----
+  cosmetic_frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Bir domen ishlatilgani uchun nisbiy "/api" eng ishonchlisi
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    image: cosmetic-frontend:latest
+    container_name: cosmetic_frontend
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - cosmetic_web_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  # Backend + DB uchun ichki (yopiq) tarmoq
+  cosmetic_internal:
+    name: cosmetic_internal
+
+  # Markaziy nginx stack egalik qiladigan tashqi tarmoq.
+  # Agar hali yaratilmagan bo'lsa:  docker network create cosmetic_web_network
+  cosmetic_web_network:
+    name: cosmetic_web_network
+    external: true
+
+volumes:
+  cosmetic_pgdata:
+    name: cosmetic_pgdata

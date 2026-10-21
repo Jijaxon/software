@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Muhit o'zgaruvchilari (maxfiy) — har joyda
+.env
+.env.*
+!.env.example
+server/uploads/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
