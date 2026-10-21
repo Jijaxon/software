@@ -6,11 +6,12 @@ const {
   deleteFeatureImage
 } = require("../../controllers/common/feature-controller");
 const {upload} = require("../../middleware/upload");
+const {authMiddleware, adminMiddleware} = require("../../middleware/auth");
 
 const router = express.Router();
 
-router.post("/add", upload.single("banner"), addFeatureImage);
+router.post("/add", authMiddleware, adminMiddleware, upload.single("banner"), addFeatureImage);
 router.get("/get", getFeatureImages);
-router.delete("/delete/:id", deleteFeatureImage);
+router.delete("/delete/:id", authMiddleware, adminMiddleware, deleteFeatureImage);
 
 module.exports = router;

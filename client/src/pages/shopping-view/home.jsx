@@ -21,6 +21,7 @@ import {addToCart, fetchCartItems} from "@/store/shop/cart-slice";
 import {toast} from "react-toastify";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import {getFeatureImages} from "@/store/common-slice";
+import {fetchTaxonomy} from "@/store/admin/taxonomy-slice/index.js";
 import instance from "@/utils/axios.js";
 import Reveal from "@/components/common/reveal.jsx";
 
@@ -92,6 +93,7 @@ function ShoppingHome() {
     (state) => state.shopProducts
   );
   const {featureImageList} = useSelector((state) => state.commonFeature);
+  const {categories, brands: brandList} = useSelector((state) => state.taxonomy);
 
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
@@ -163,9 +165,30 @@ function ShoppingHome() {
 
   useEffect(() => {
     dispatch(getFeatureImages());
+    dispatch(fetchTaxonomy({type: "category", activeOnly: true}));
+    dispatch(fetchTaxonomy({type: "brand", activeOnly: true}));
   }, [dispatch]);
 
   const featuredProducts = productList?.slice(0, 8) || [];
+
+  // Kategoriyalarni bazadan quramiz; seed qilinganlar uchun maxsus ikonka/rasm saqlanadi,
+  // yangi bo'limlar admin yuklagan rasm va standart ikonka bilan ko'rsatiladi
+  const displayCategories = (categories?.length
+    ? categories.map((cat) => {
+        const meta = categoriesWithIcon.find((c) => c.id === cat.slug);
+        return {
+          id: cat.slug,
+          label: cat.name,
+          note: cat.description || meta?.note || "Go'zallik uchun",
+          icon: meta?.icon || Sparkles,
+          image: cat.image ? instance.defaults.baseURL + cat.image : meta?.image || fallbackHero,
+        };
+      })
+    : categoriesWithIcon);
+
+  const displayBrands = (brandList?.length
+    ? brandList.map((b) => ({id: b.slug, label: b.name}))
+    : brands);
 
   return (
     <div className="min-h-screen bg-ivory text-espresso">
@@ -265,7 +288,7 @@ function ShoppingHome() {
           }
         />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-          {categoriesWithIcon.map((categoryItem, index) => (
+          {displayCategories.map((categoryItem, index) => (
             <Reveal key={categoryItem.id} delay={index * 90}>
               <button
                 onClick={() => handleNavigateToListingPage(categoryItem, "category")}
@@ -302,7 +325,7 @@ function ShoppingHome() {
         </Reveal>
         <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
           <div className="flex w-max animate-marquee gap-4 hover:[animation-play-state:paused]">
-            {[...brands, ...brands].map((brand, index) => (
+            {[...displayBrands, ...displayBrands].map((brand, index) => (
               <button
                 key={brand.id + index}
                 onClick={() => handleNavigateToListingPage(brand, "brand")}

@@ -19,6 +19,7 @@ import UserCartWrapper from "./cart-wrapper";
 import {useEffect, useState} from "react";
 import {fetchCartItems} from "@/store/shop/cart-slice";
 import {fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
+import {fetchTaxonomy} from "@/store/admin/taxonomy-slice/index.js";
 import UserWishlistWrapper from "@/components/shopping-view/wishlist-wrapper.jsx";
 
 const announcements = [
@@ -49,9 +50,25 @@ function AnnouncementBar() {
 function MenuItems({onNavigate, variant = "desktop"}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get("category");
   const isListing = location.pathname.includes("listing");
+  const {categories} = useSelector((state) => state.taxonomy);
+
+  useEffect(() => {
+    dispatch(fetchTaxonomy({type: "category", activeOnly: true}));
+  }, [dispatch]);
+
+  // Statik bo'limlar o'rtasiga bazadan kelgan kategoriyalarni joylaymiz
+  const staticHead = shoppingViewHeaderMenuItems.filter((m) => ["home", "all-products"].includes(m.id));
+  const staticTail = shoppingViewHeaderMenuItems.filter((m) => ["search", "about_us"].includes(m.id));
+  const categoryItems = categories?.length
+    ? categories.map((c) => ({id: c.slug, label: c.name, path: "/shop/listing"}))
+    : shoppingViewHeaderMenuItems.filter(
+        (m) => !["home", "all-products", "search", "about_us"].includes(m.id)
+      );
+  const menuItems = [...staticHead, ...categoryItems, ...staticTail];
 
   function isActive(menuItem) {
     if (menuItem.id === "all-products") return isListing && !activeCategory;
@@ -85,7 +102,7 @@ function MenuItems({onNavigate, variant = "desktop"}) {
   if (variant === "mobile") {
     return (
       <nav className="flex flex-col">
-        {shoppingViewHeaderMenuItems.map((menuItem, index) => (
+        {menuItems.map((menuItem, index) => (
           <button
             onClick={() => handleNavigate(menuItem)}
             key={menuItem.id}
@@ -101,7 +118,7 @@ function MenuItems({onNavigate, variant = "desktop"}) {
 
   return (
     <nav className="flex items-center gap-6 xl:gap-8">
-      {shoppingViewHeaderMenuItems
+      {menuItems
         .filter((menuItem) => !["home", "search", "about_us"].includes(menuItem.id))
         .map((menuItem) => (
           <button

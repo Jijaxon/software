@@ -23,6 +23,10 @@ const storage = multer.diskStorage({
       cb(null, 'uploads/products');
     } else if (file.fieldname === "banner") {
       cb(null, 'uploads/banners');
+    } else if (file.fieldname === "category_image") {
+      cb(null, 'uploads/categories');
+    } else if (file.fieldname === "brand_image") {
+      cb(null, 'uploads/brands');
     } else {
       cb(new Error(`Invalid field name: ${file.fieldname}`), false);
     }

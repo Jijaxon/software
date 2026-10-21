@@ -22,6 +22,8 @@ import About from "@/pages/shopping-view/about.jsx";
 import Search from "@/pages/shopping-view/search.jsx";
 import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
 import Banner from "@/pages/admin-view/banner.jsx";
+import AdminCategories from "@/pages/admin-view/categories.jsx";
+import AdminBrands from "@/pages/admin-view/brands.jsx";
 import AuthVerify from "@/pages/auth/verify.jsx";
 import AuthForgotPassword from "@/pages/auth/forgot-password.jsx";
 
@@ -61,6 +63,8 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard/>}/>
           <Route path="orders" element={<AdminOrders/>}/>
           <Route path="banners" element={<Banner/>}/>
+          <Route path="categories" element={<AdminCategories/>}/>
+          <Route path="brands" element={<AdminBrands/>}/>
         </Route>
         <Route path="shop" element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><ShoppingLayout/></CheckAuth>}>
           <Route path="home" element={<ShoppingHome/>}/>

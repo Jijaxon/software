@@ -22,6 +22,9 @@ const dashboardRouter = require("./routes/dashboard/dashboard-routes")
 
 const wishlistRouter = require("./routes/shop/wishlist-routes")
 
+const categoryRouter = require("./routes/admin/category-routes")
+const brandRouter = require("./routes/admin/brand-routes")
+
 const { startTelegramBot } = require('./telegram/bot')
 
 const app = express()
@@ -59,6 +62,9 @@ app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/shop/wishlist", wishlistRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
+
+app.use("/api/categories", categoryRouter);
+app.use("/api/brands", brandRouter);
 
 app.use("/api/dashboard", dashboardRouter);
 

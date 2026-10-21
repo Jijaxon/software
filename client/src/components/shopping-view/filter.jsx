@@ -1,6 +1,9 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { filterOptions } from "@/config";
 import { Checkbox } from "../ui/checkbox";
 import { SlidersHorizontal } from "lucide-react";
+import { fetchTaxonomy } from "@/store/admin/taxonomy-slice/index.js";
 
 const sectionLabels = {
   category: "Kategoriya",
@@ -8,6 +11,24 @@ const sectionLabels = {
 };
 
 function ProductFilter({ filters, handleFilter }) {
+  const dispatch = useDispatch();
+  const { categories, brands } = useSelector((state) => state.taxonomy);
+
+  useEffect(() => {
+    dispatch(fetchTaxonomy({ type: "category", activeOnly: true }));
+    dispatch(fetchTaxonomy({ type: "brand", activeOnly: true }));
+  }, [dispatch]);
+
+  // Bazadan kelgan kategoriya/brendlar; bo'sh bo'lsa config'dagi standart ro'yxatga qaytamiz
+  const dynamicOptions = {
+    category: categories?.length
+      ? categories.map((c) => ({ id: c.slug, label: c.name }))
+      : filterOptions.category,
+    brand: brands?.length
+      ? brands.map((b) => ({ id: b.slug, label: b.name }))
+      : filterOptions.brand,
+  };
+
   const activeCount = Object.values(filters || {}).reduce(
     (sum, values) => sum + (Array.isArray(values) ? values.length : 0),
     0
@@ -27,13 +48,13 @@ function ProductFilter({ filters, handleFilter }) {
         ) : null}
       </div>
       <div className="mt-5 space-y-7">
-        {Object.keys(filterOptions).map((keyItem) => (
+        {Object.keys(dynamicOptions).map((keyItem) => (
           <div key={keyItem}>
             <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
               {sectionLabels[keyItem] || keyItem}
             </h3>
             <div className="grid gap-1">
-              {filterOptions[keyItem].map((option) => {
+              {dynamicOptions[keyItem].map((option) => {
                 const isChecked = Boolean(
                   filters &&
                   Object.keys(filters).length > 0 &&

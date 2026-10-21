@@ -42,7 +42,7 @@ export const addProductFormElements = [
     placeholder: "Mahsulot nomini kiriting",
   },
   {
-    label: "Description",
+    label: "Tavsif",
     name: "description",
     componentType: "textarea",
     placeholder: "Mahsulot haqida ma'lumot kiriting",
@@ -79,14 +79,14 @@ export const addProductFormElements = [
     placeholder: "Mahsulot narxini kiriting",
   },
   {
-    label: "Discount Percentage (%)",
+    label: "Chegirma foizi % (ixtiyoriy)",
     name: "salePrice",
     componentType: "input",
     type: "number",
-    placeholder: "Chegirma foizini kiriting (ixtiyoriy)",
+    placeholder: "Masalan, 20 (0–99)",
   },
   {
-    label: "Stock Quantity",
+    label: "Ombordagi miqdor",
     name: "totalStock",
     componentType: "input",
     type: "number",

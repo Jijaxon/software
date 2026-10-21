@@ -11,20 +11,30 @@ function AdminHeader({setOpen}) {
   }
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-background border-b">
-      <Button onClick={() => setOpen(true)} className="lg:hidden sm:block">
-        <AlignJustify/>
-        <span className="sr-only">Toggle Menu</span>
-      </Button>
-      <div className="flex flex-1 justify-end">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sand/70 bg-ivory/80 px-4 py-3 backdrop-blur-md md:px-6">
+      <div className="flex items-center gap-3">
         <Button
-          onClick={handleLogout}
-          className="inline-flex gap-2 items-center rounded-md px-4 py-2 text-sm font-medium shadow"
+          onClick={() => setOpen(true)}
+          variant="ghost"
+          size="icon"
+          className="text-espresso hover:bg-blush/50 lg:hidden"
         >
-          <LogOut/>
-          Logout
+          <AlignJustify/>
+          <span className="sr-only">Menyuni ochish</span>
         </Button>
+        <div className="hidden sm:block">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-taupe">Xush kelibsiz</p>
+          <p className="font-display text-lg font-semibold text-espresso">Administrator</p>
+        </div>
       </div>
+
+      <Button
+        onClick={handleLogout}
+        className="inline-flex items-center gap-2 rounded-full border border-petal bg-white px-4 py-2 text-sm font-medium text-rose-deep shadow-none transition-all hover:-translate-y-0.5 hover:bg-blush/50"
+      >
+        <LogOut className="h-4 w-4"/>
+        Chiqish
+      </Button>
     </header>
   );
 }

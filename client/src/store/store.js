@@ -13,12 +13,14 @@ import shopAddressSlice from "./shop/address-slice";
 import shopSearchSlice from "./shop/search-slice";
 import commonFeatureSlice from "./common-slice";
 import dashboardSlice from "@/store/admin/dashboard-slice/index.js";
+import taxonomySlice from "@/store/admin/taxonomy-slice/index.js";
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
 
     dashboard: dashboardSlice,
+    taxonomy: taxonomySlice,
     adminProducts: adminProductsSlice,
     adminOrder: adminOrderSlice,
 

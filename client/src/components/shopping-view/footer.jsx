@@ -1,9 +1,16 @@
 import {Link, useNavigate} from "react-router-dom";
+import {useSelector} from "react-redux";
 import {Instagram, Send, Sparkles} from "lucide-react";
 import {categoryOptionsMap} from "@/config";
 
 function ShoppingFooter() {
   const navigate = useNavigate();
+  const {categories} = useSelector((state) => state.taxonomy);
+
+  // Bazadan kelgan bo'limlar; bo'sh bo'lsa config'dagi standart ro'yxat
+  const footerCategories = categories?.length
+    ? categories.map((c) => ({id: c.slug, label: c.name}))
+    : Object.entries(categoryOptionsMap).map(([id, label]) => ({id, label}));
 
   function handleCategory(categoryId) {
     sessionStorage.setItem("filters", JSON.stringify({category: [categoryId]}));
@@ -49,7 +56,7 @@ function ShoppingFooter() {
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-petal">Bo'limlar</h4>
           <ul className="mt-5 space-y-3 text-sm text-ivory/70">
-            {Object.entries(categoryOptionsMap).map(([id, label]) => (
+            {footerCategories.map(({id, label}) => (
               <li key={id}>
                 <button onClick={() => handleCategory(id)} className="transition-colors hover:text-ivory">
                   {label}

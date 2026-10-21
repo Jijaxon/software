@@ -13,11 +13,12 @@ import { addReview, getReviews } from "@/store/shop/review-slice";
 import  {toast} from "react-toastify";
 import instance from "@/utils/axios.js";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
-import {brandOptionsMap, categoryOptionsMap} from "@/config";
+import {useTaxonomyLabels} from "@/lib/use-taxonomy-labels.js";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
+  const {categoryLabel, brandLabel} = useTaxonomyLabels();
 
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
@@ -155,9 +156,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="animate-fade-up">
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-deep">
               <Sparkles className="h-3.5 w-3.5"/>
-              {brandOptionsMap[productDetails?.brand] || productDetails?.brand}
+              {brandLabel(productDetails?.brand)}
               <span className="text-taupe">·</span>
-              <span className="text-taupe">{categoryOptionsMap[productDetails?.category] || productDetails?.category}</span>
+              <span className="text-taupe">{categoryLabel(productDetails?.category)}</span>
             </p>
             <DialogTitle className="mt-3 font-display text-3xl font-semibold leading-tight text-espresso sm:text-4xl">
               {productDetails?.title}

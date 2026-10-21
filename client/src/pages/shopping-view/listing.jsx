@@ -9,7 +9,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {categoryOptionsMap, sortOptions} from "@/config";
+import {sortOptions} from "@/config";
+import {useTaxonomyLabels} from "@/lib/use-taxonomy-labels.js";
 import {toast} from "react-toastify";
 import {addToCart, fetchCartItems} from "@/store/shop/cart-slice";
 import {fetchAllFilteredProducts, fetchProductDetails,} from "@/store/shop/products-slice";
@@ -42,6 +43,7 @@ function ShoppingListing() {
   const {user} = useSelector((state) => state.auth);
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
+  const {categoryLabel} = useTaxonomyLabels();
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
@@ -135,7 +137,7 @@ function ShoppingListing() {
   }, [productDetails]);
 
   const activeSortLabel = sortOptions.find((sortItem) => sortItem.id === sort)?.label;
-  const activeCategory = filters?.category?.length === 1 ? categoryOptionsMap[filters.category[0]] : null;
+  const activeCategory = filters?.category?.length === 1 ? categoryLabel(filters.category[0]) : null;
 
   return (
     <div className="bg-ivory">

@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {formatPrice} from "@/lib/utils";
-import {brandOptionsMap, categoryOptionsMap} from "@/config";
+import {useTaxonomyLabels} from "@/lib/use-taxonomy-labels.js";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
 import {toast} from "react-toastify";
@@ -15,6 +15,7 @@ function ShoppingProductTile({
 
   const dispatch = useDispatch()
   const [heartKey, setHeartKey] = useState(0)
+  const {categoryLabel, brandLabel} = useTaxonomyLabels()
 
   const {user} = useSelector(state => state.auth)
   const {wishlistItems, isLoading} = useSelector(state => state.shopWishlist)
@@ -122,8 +123,8 @@ function ShoppingProductTile({
 
       <div className="cursor-pointer px-1 pt-4" onClick={() => handleGetProductDetails(product?._id)}>
         <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-taupe">
-          <span className="truncate">{brandOptionsMap[product?.brand] || product?.brand}</span>
-          <span className="truncate text-right normal-case tracking-normal">{categoryOptionsMap[product?.category] || product?.category}</span>
+          <span className="truncate">{brandLabel(product?.brand)}</span>
+          <span className="truncate text-right normal-case tracking-normal">{categoryLabel(product?.category)}</span>
         </div>
         <h2 className="line-clamp-2 min-h-11 text-[15px] font-medium leading-snug text-espresso transition-colors group-hover:text-rose-deep">
           {product?.title}

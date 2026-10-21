@@ -1,65 +1,66 @@
-import React from 'react';
 import {formatPrice} from "@/lib/utils";
-import {Card, CardContent, CardFooter} from "../ui/card"
 import {Button} from "@/components/ui/button.jsx";
 import instance from "@/utils/axios.js";
 import {Badge} from "@/components/ui/badge.jsx";
+import {Pencil, Trash2} from "lucide-react";
 
-const AdminProductTile = ({product, setFormData, setOpenCreateProductsDialog, setCurrentEditedId, handleDelete,}) => {
-
+const AdminProductTile = ({product, setFormData, setOpenCreateProductsDialog, setCurrentEditedId, handleDelete}) => {
   function calculateSale() {
-    return product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)
+    return product?.price - (Number(product?.price) * Number(product?.salePrice) / 100);
   }
 
   return (
-    <Card className="w-full max-w-sm mx-auto relative overflow-hidden">
-      <div>
-        <div className="relative">
-          <img
-            src={instance.defaults.baseURL + product?.image}
-            alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
-          />
-          <div className={"absolute w-full top-2 p-2 flex justify-between"}>
-            <Badge className="bg-red-500 hover:bg-red-600">
-              {`Only ${product?.totalStock} items left`}
+    <div className="group relative overflow-hidden rounded-3xl border border-sand bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blush/40">
+      <div className="relative overflow-hidden">
+        <img
+          src={instance.defaults.baseURL + product?.image}
+          alt={product?.title}
+          className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-x-0 top-0 flex justify-between p-3">
+          <Badge className="border-0 bg-espresso/85 text-ivory backdrop-blur">
+            {product?.totalStock} dona
+          </Badge>
+          {product?.salePrice > 0 && (
+            <Badge className="border-0 bg-rose-deep text-ivory">
+              -{product?.salePrice}%
             </Badge>
-            {product?.salePrice > 0 && (
-              <Badge className="bg-red-500 hover:bg-red-600">
-                Sale {product?.salePrice}%
-              </Badge>
-            )}
-          </div>
+          )}
         </div>
-        <CardContent>
-          <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
-            >
-              {formatPrice(product?.price)}
-            </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">{formatPrice(calculateSale())}</span>
-            ) : null}
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between items-center">
+      </div>
+
+      <div className="p-5">
+        <h2 className="mb-2 truncate font-display text-lg font-semibold text-espresso">{product?.title}</h2>
+        <div className="mb-4 flex items-center gap-2">
+          <span className={`font-semibold ${product?.salePrice > 0 ? "text-sm text-taupe line-through" : "text-lg text-espresso"}`}>
+            {formatPrice(product?.price)}
+          </span>
+          {product?.salePrice > 0 ? (
+            <span className="text-lg font-bold text-rose-deep">{formatPrice(calculateSale())}</span>
+          ) : null}
+        </div>
+
+        <div className="flex gap-2">
           <Button
             onClick={() => {
               setOpenCreateProductsDialog(true);
               setCurrentEditedId(product?._id);
               setFormData(product);
             }}
+            className="h-10 flex-1 gap-1.5 rounded-full bg-espresso text-ivory hover:bg-mocha"
           >
-            Edit
+            <Pencil className="h-3.5 w-3.5"/> Tahrir
           </Button>
-          <Button onClick={() => handleDelete(product?._id)}>Delete</Button>
-        </CardFooter>
+          <Button
+            onClick={() => handleDelete(product?._id)}
+            variant="outline"
+            className="h-10 gap-1.5 rounded-full border-petal text-rose-deep hover:bg-blush/50"
+          >
+            <Trash2 className="h-3.5 w-3.5"/>
+          </Button>
+        </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

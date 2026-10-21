@@ -132,3 +132,49 @@ CREATE INDEX IF NOT EXISTS users_telegram_chat_id_idx ON users(telegram_chat_id)
 ALTER TABLE users ALTER COLUMN username DROP NOT NULL;
 -- Yuborilgan kodning maqsadi: 'verify' | 'login' | 'reset' (parolni tiklash kodini ajratish uchun)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS code_purpose TEXT;
+
+-- Go'zallik bo'limlari (kategoriyalar) — admin panel orqali boshqariladi
+CREATE TABLE IF NOT EXISTS categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  image TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Brendlar — admin panel orqali boshqariladi
+CREATE TABLE IF NOT EXISTS brands (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  image TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS categories_active_idx ON categories(is_active);
+CREATE INDEX IF NOT EXISTS brands_active_idx ON brands(is_active);
+
+-- Mavjud mahsulotlardagi slug'lar ishlashda davom etishi uchun boshlang'ich qiymatlar
+INSERT INTO categories (name, slug, sort_order) VALUES
+  ('Yuz parvarishi', 'skincare', 1),
+  ('Makiyaj', 'makeup', 2),
+  ('Atirlar', 'fragrance', 3),
+  ('Soch parvarishi', 'haircare', 4)
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO brands (name, slug, sort_order) VALUES
+  ('CeraVe', 'cerave', 1),
+  ('The Ordinary', 'the-ordinary', 2),
+  ('L''Oréal Paris', 'loreal', 3),
+  ('Maybelline', 'maybelline', 4),
+  ('Dior', 'dior', 5),
+  ('Fenty Beauty', 'fenty-beauty', 6)
+ON CONFLICT (slug) DO NOTHING;
