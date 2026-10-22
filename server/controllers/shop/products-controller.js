@@ -85,6 +85,15 @@ const getFilteredProducts = async (req, res) => {
       case "title-ztoa":
         sort = 'title DESC';
         break;
+      case "popular":
+        sort = 'sold_count DESC, created_at DESC';
+        break;
+      case "rating":
+        sort = 'average_review DESC NULLS LAST, sold_count DESC';
+        break;
+      case "newest":
+        sort = 'created_at DESC';
+        break;
       default:
         sort = 'price ASC';
         break;

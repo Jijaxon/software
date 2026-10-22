@@ -6,12 +6,15 @@ import './index.css'
 import {Provider} from "react-redux";
 import store from './store/store.js';
 import NafisToaster from "@/components/common/toaster.jsx";
+import {LanguageProvider} from "@/i18n/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
-    <BrowserRouter>
-      <App/>
-      <NafisToaster/>
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <App/>
+        <NafisToaster/>
+      </BrowserRouter>
+    </LanguageProvider>
   </Provider>
 );

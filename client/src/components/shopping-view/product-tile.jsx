@@ -4,8 +4,10 @@ import {useTaxonomyLabels} from "@/lib/use-taxonomy-labels.js";
 import instance from "@/utils/axios.js";
 import {useDispatch, useSelector} from "react-redux";
 import {toast} from "react-toastify";
-import {Eye, HeartIcon, ShoppingBag} from "lucide-react";
+import {Eye, HeartIcon, ShoppingBag, StarIcon, Timer} from "lucide-react";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
+import Countdown from "@/components/common/countdown.jsx";
+import {useT} from "@/i18n/index.jsx";
 
 function ShoppingProductTile({
                                product,
@@ -16,12 +18,17 @@ function ShoppingProductTile({
   const dispatch = useDispatch()
   const [heartKey, setHeartKey] = useState(0)
   const {categoryLabel, brandLabel} = useTaxonomyLabels()
+  const {t} = useT()
+  const lowStockThreshold = useSelector(state => state.growth.settings.lowStockThreshold) || 5
 
   const {user} = useSelector(state => state.auth)
   const {wishlistItems, isLoading} = useSelector(state => state.shopWishlist)
 
   const isInWishlist = Boolean(wishlistItems?.items?.find((el) => el?.productId === product?._id))
   const isOutOfStock = product?.totalStock === 0
+  const isLowStock = product?.totalStock > 0 && product?.totalStock <= lowStockThreshold
+  const hasTimedSale = product?.salePrice > 0 && product?.saleEndsAt && new Date(product.saleEndsAt) > new Date()
+  const rating = Number(product?.averageReview) || 0
 
   function calculateSale() {
     return (product?.price - (Number(product?.price) * Number(product?.salePrice) / 100)).toFixed(2)
@@ -32,12 +39,12 @@ function ShoppingProductTile({
     if (isInWishlist) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.info("Mahsulot istaklar ro'yxatidan olib tashlandi")
+        toast.info(t("toast.wishlistRemoved"))
       })
     } else {
       dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.success("Mahsulot istaklar ro'yxatiga qo'shildi")
+        toast.success(t("toast.wishlistAdded"))
       })
     }
   }
@@ -60,14 +67,14 @@ function ShoppingProductTile({
               -{product.salePrice}%
             </span>
           )}
-          {product?.totalStock > 0 && product?.totalStock < 5 && (
-            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-mocha backdrop-blur">
-              Faqat {product.totalStock} ta qoldi
+          {isLowStock && (
+            <span className="animate-pulse rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-rose-deep backdrop-blur">
+              🔥 {t("product.onlyLeft", {count: product.totalStock})}
             </span>
           )}
           {isOutOfStock && (
             <span className="rounded-full bg-espresso/85 px-2.5 py-1 text-[11px] font-medium text-ivory backdrop-blur">
-              Sotuvda yo'q
+              {t("product.outOfStock")}
             </span>
           )}
         </div>
@@ -78,11 +85,11 @@ function ShoppingProductTile({
             if (user) {
               toggleWishlist(product?._id)
             } else {
-              toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
+              toast.error(t("toast.loginToWishlist"))
             }
           }}
-          title="Istaklar ro'yxatiga qo'shish"
-          aria-label="Istaklar ro'yxatiga qo'shish"
+          title={t("product.addWishlist")}
+          aria-label={t("product.addWishlist")}
           aria-pressed={isInWishlist}
           className={`absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-white ${isInWishlist ? "text-rose-deep" : "text-mocha"}`}
         >
@@ -96,11 +103,18 @@ function ShoppingProductTile({
 
         <button
           onClick={() => handleGetProductDetails(product?._id)}
-          aria-label="Batafsil ko'rish"
+          aria-label={t("product.view")}
           className="absolute right-3 top-16 grid h-10 w-10 translate-x-3 place-items-center rounded-full bg-white/90 text-mocha opacity-0 shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-white group-hover:translate-x-0 group-hover:opacity-100"
         >
           <Eye className="h-[18px] w-[18px]" strokeWidth={1.8}/>
         </button>
+
+        {hasTimedSale && (
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-center gap-1.5 rounded-full bg-rose-deep/90 py-1.5 text-[11px] font-semibold text-white shadow backdrop-blur transition-opacity duration-300 lg:group-hover:opacity-0">
+            <Timer className="h-3.5 w-3.5"/>
+            <Countdown endsAt={product.saleEndsAt}/>
+          </div>
+        )}
 
         {!isOutOfStock && (
           <div className="absolute inset-x-3 bottom-3 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:translate-y-[calc(100%+16px)] lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
@@ -109,13 +123,13 @@ function ShoppingProductTile({
                 if (user) {
                   handleAddtoCart(product?._id, product?.totalStock)
                 } else {
-                  toast.error("Xarid qilish uchun tizimga kiring")
+                  toast.error(t("toast.loginToBuy"))
                 }
               }}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white/95 text-[13px] font-semibold text-espresso shadow-lg shadow-espresso/10 backdrop-blur transition-colors duration-300 hover:bg-espresso hover:text-ivory"
             >
               <ShoppingBag className="h-4 w-4" strokeWidth={1.8}/>
-              Savatga qo'shish
+              {t("product.addToCart")}
             </button>
           </div>
         )}
@@ -139,6 +153,17 @@ function ShoppingProductTile({
             <span className="font-display text-xl font-semibold text-espresso">{formatPrice(product?.price)}</span>
           )}
         </div>
+        {rating > 0 || product?.soldCount > 0 ? (
+          <div className="mt-1.5 flex items-center gap-3 text-[11px] text-taupe">
+            {rating > 0 ? (
+              <span className="flex items-center gap-1 font-semibold text-mocha">
+                <StarIcon className="h-3.5 w-3.5 fill-gold text-gold" strokeWidth={1.5}/>
+                {rating.toFixed(1)}
+              </span>
+            ) : null}
+            {product?.soldCount > 0 ? <span>{t("product.sold", {count: product.soldCount})}</span> : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

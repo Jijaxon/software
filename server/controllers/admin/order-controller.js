@@ -1,5 +1,6 @@
 const { pool } = require("../../db");
 const { toRecord, toRecords } = require("../../db/records");
+const { notifyOrderStatus } = require("../../telegram/notify");
 
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
@@ -59,10 +60,16 @@ const getOrderDetailsForAdmin = async (req, res) => {
   }
 };
 
+const ORDER_STATUSES = ["pending", "confirmed", "inProcess", "inShipping", "delivered", "rejected"];
+
 const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { orderStatus } = req.body;
+
+    if (!ORDER_STATUSES.includes(orderStatus)) {
+      return res.status(400).json({ success: false, message: "Noto'g'ri holat" });
+    }
 
     const order = toRecord((await pool.query('SELECT * FROM orders WHERE id = $1', [id])).rows[0]);
 
@@ -75,8 +82,15 @@ const updateOrderStatus = async (req, res) => {
 
     await pool.query('UPDATE orders SET order_status = $1, order_update_date = NOW(), updated_at = NOW() WHERE id = $2', [orderStatus, id]);
 
+    // Holat haqiqatan o'zgarganda mijozga Telegram orqali xabar beramiz
+    let notified = false;
+    if (order.orderStatus !== orderStatus) {
+      notified = await notifyOrderStatus(order, orderStatus);
+    }
+
     res.status(200).json({
       success: true,
+      notified,
       message: "Order status is updated successfully!",
     });
   } catch (e) {

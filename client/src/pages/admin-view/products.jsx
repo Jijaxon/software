@@ -11,11 +11,12 @@ import AdminProductTile from "@/components/admin-view/product-tile.jsx";
 import Pagination from "@/components/admin-view/pagination.jsx";
 import {Input} from "@/components/ui/input.jsx";
 import {Plus, Search} from "lucide-react";
+import {fromDateTimeLocal, toDateTimeLocal} from "@/lib/utils";
 
 const PAGE_SIZE = 8;
 
 const initialFormData = {
-  title: "", description: "", category: "", brand: "", price: "", salePrice: "", totalStock: "",
+  title: "", description: "", category: "", brand: "", price: "", salePrice: "", totalStock: "", saleEndsAt: "",
 }
 
 function AdminProducts() {
@@ -67,10 +68,13 @@ function AdminProducts() {
   async function onSubmit(e) {
     e.preventDefault();
 
+    // datetime-local qiymatini ISO ga o'giramiz (server vaqt zonasidan qat'i nazar to'g'ri saqlansin)
+    const payload = {...formData, saleEndsAt: fromDateTimeLocal(formData.saleEndsAt) || ""};
+
     currentEditedId !== null ?
-      await dispatch(updateProduct({id: currentEditedId, formData, imageFiles: imageFile}))
+      await dispatch(updateProduct({id: currentEditedId, formData: payload, imageFiles: imageFile}))
       :
-      await dispatch(addNewProduct({ formData, imageFiles: imageFile }));
+      await dispatch(addNewProduct({ formData: payload, imageFiles: imageFile }));
 
     setFormData(initialFormData);
     setImageFile(null);
@@ -158,7 +162,7 @@ function AdminProducts() {
             {pagedProducts.map((productItem) => (
               <AdminProductTile
                 key={productItem?._id}
-                setFormData={setFormData}
+                setFormData={(product) => setFormData({...product, saleEndsAt: toDateTimeLocal(product.saleEndsAt)})}
                 setOpenCreateProductsDialog={setOpenCreateProductsDialog}
                 setCurrentEditedId={setCurrentEditedId}
                 product={productItem}

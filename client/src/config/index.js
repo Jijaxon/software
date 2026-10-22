@@ -86,6 +86,12 @@ export const addProductFormElements = [
     placeholder: "Masalan, 20 (0–99)",
   },
   {
+    label: "Chegirma tugash vaqti (ixtiyoriy — saytda taymer chiqadi)",
+    name: "saleEndsAt",
+    componentType: "input",
+    type: "datetime-local",
+  },
+  {
     label: "Ombordagi miqdor",
     name: "totalStock",
     componentType: "input",
@@ -141,6 +147,9 @@ export const filterOptions = {
 
 // Sort (saralash) variantlari
 export const sortOptions = [
+  {id: "popular", label: "Eng ko'p sotilgan"},
+  {id: "rating", label: "Yuqori reyting"},
+  {id: "newest", label: "Yangi kelganlar"},
   {id: "price-lowtohigh", label: "Narx: arzonidan qimmatiga"},
   {id: "price-hightolow", label: "Narx: qimmatidan arzoniga"},
   {id: "title-atoz", label: "Nomi: A dan Z gacha"},

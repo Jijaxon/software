@@ -13,6 +13,8 @@ const {
   clearCode,
 } = require('../../telegram/codes');
 
+const { findUserIdByReferralCode } = require('../../services/referral');
+
 const JWT_SECRET = process.env.JWT_SECRET || "CLIENT_SECRET_KEY";
 
 async function findUser(query, params) {
@@ -109,6 +111,8 @@ const registerUser = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 12);
     const linkToken = generateLinkToken();
+    // Taklif havolasi orqali kelgan bo'lsa — kim taklif qilganini saqlaymiz
+    const referredBy = await findUserIdByReferralCode(req.body.ref);
 
     // Shu raqam bilan tasdiqlanmay qolgan ro'yxatdan o'tish bo'lsa, uni qaytadan boshlaymiz
     const existing = await findUser(
@@ -120,14 +124,14 @@ const registerUser = async (req, res) => {
       await pool.query(
         `UPDATE users SET password = $1, telegram_link_token = $2, verification_code = '',
          code_expires_at = NULL, code_sent_at = NULL, code_attempts = 0, code_purpose = NULL,
-         telegram_chat_id = NULL, updated_at = NOW() WHERE id = $3`,
-        [hashPassword, linkToken, existing.id]
+         telegram_chat_id = NULL, referred_by = COALESCE(referred_by, $4), updated_at = NOW() WHERE id = $3`,
+        [hashPassword, linkToken, existing.id, referredBy !== existing.id ? referredBy : null]
       );
     } else {
       await pool.query(
-        `INSERT INTO users (phone, password, verify, verification_code, telegram_link_token)
-         VALUES ($1, $2, FALSE, '', $3)`,
-        [phone, hashPassword, linkToken]
+        `INSERT INTO users (phone, password, verify, verification_code, telegram_link_token, referred_by)
+         VALUES ($1, $2, FALSE, '', $3, $4)`,
+        [phone, hashPassword, linkToken, referredBy]
       );
     }
 

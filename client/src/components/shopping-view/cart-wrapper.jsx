@@ -4,9 +4,12 @@ import { ArrowRight, ShoppingBag } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
+import FreeDeliveryProgress from "./free-delivery-progress";
+import {useT} from "@/i18n/index.jsx";
 
 function UserCartWrapper({ cartItems, setOpenCartSheet }) {
   const navigate = useNavigate();
+  const {t} = useT();
 
   const totalCartAmount =
     cartItems && cartItems.length > 0
@@ -23,7 +26,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
     <SheetContent className="flex w-full flex-col gap-0 border-sand bg-ivory p-0 sm:max-w-md">
       <SheetHeader className="border-b border-sand px-6 py-5 text-left">
         <SheetTitle className="flex items-baseline gap-2 font-display text-3xl font-semibold text-espresso">
-          Savatingiz
+          {t("cart.title")}
           {cartItems?.length ? (
             <span className="font-body text-sm font-normal text-taupe">({cartItems.length})</span>
           ) : null}
@@ -40,12 +43,13 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
             ))}
           </div>
           <div className="border-t border-sand bg-white/70 px-6 py-6 backdrop-blur">
+            <FreeDeliveryProgress subtotal={totalCartAmount} className="mb-4"/>
             <div className="flex items-center justify-between text-sm text-taupe">
-              <span>Oraliq summa</span>
+              <span>{t("cart.subtotal")}</span>
               <span>{formatPrice(totalCartAmount)}</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <span className="font-display text-xl font-semibold text-espresso">Jami</span>
+              <span className="font-display text-xl font-semibold text-espresso">{t("cart.total")}</span>
               <span className="font-display text-2xl font-semibold text-espresso">{formatPrice(totalCartAmount)}</span>
             </div>
             <Button
@@ -55,7 +59,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
               }}
               className="group mt-5 h-12 w-full rounded-full bg-espresso text-sm font-semibold tracking-wide text-ivory transition-all duration-300 hover:bg-mocha hover:shadow-lg hover:shadow-mocha/25"
             >
-              Rasmiylashtirish
+              {t("cart.checkout")}
               <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </div>
@@ -65,9 +69,9 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           <div className="grid h-24 w-24 animate-float place-items-center rounded-full bg-blush">
             <ShoppingBag className="h-10 w-10 text-rose-deep" strokeWidth={1.4} />
           </div>
-          <h3 className="mt-6 font-display text-2xl font-semibold text-espresso">Savatingiz bo'sh</h3>
+          <h3 className="mt-6 font-display text-2xl font-semibold text-espresso">{t("cart.empty")}</h3>
           <p className="mt-2 max-w-xs text-sm leading-6 text-taupe">
-            Sizga yoqqan mahsulotlarni qo'shing — ular shu yerda kutib turadi.
+            {t("cart.emptyText")}
           </p>
           <Button
             onClick={() => {
@@ -77,7 +81,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
             variant="outline"
             className="mt-6 h-11 rounded-full border-espresso/20 bg-transparent px-6 hover:bg-espresso hover:text-ivory"
           >
-            Xaridni boshlash
+            {t("cart.startShopping")}
           </Button>
         </div>
       )}

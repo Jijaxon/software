@@ -10,6 +10,13 @@ function toNum(value) {
   return Number.isNaN(n) ? null : n;
 }
 
+// Chegirma tugash vaqti: bo'sh/"null" -> null, aks holda ISO sana
+function toDate(value) {
+  if (value === "" || value === null || value === undefined || value === "null" || value === "undefined") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 //add a new product
 const addProduct = async (req, res) => {
   try {
@@ -31,10 +38,13 @@ const addProduct = async (req, res) => {
       imagePath = `/uploads/products/${req.file.filename}`;
     }
 
+    // Chegirma bo'lmasa tugash vaqti ham saqlanmaydi
+    const saleEndsAt = toNum(salePrice) > 0 ? toDate(req.body.saleEndsAt) : null;
+
     const newlyCreatedProduct = toRecord((await pool.query(
-      `INSERT INTO products (image, title, description, category, brand, price, sale_price, total_stock, average_review)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [imagePath, title, description, category, brand, toNum(price), toNum(salePrice), toNum(totalStock), toNum(averageReview)]
+      `INSERT INTO products (image, title, description, category, brand, price, sale_price, total_stock, average_review, sale_ends_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [imagePath, title, description, category, brand, toNum(price), toNum(salePrice), toNum(totalStock), toNum(averageReview), saleEndsAt]
     )).rows[0]);
     res.status(201).json({
       success: true,
@@ -103,16 +113,22 @@ const editProduct = async (req, res) => {
       findProduct.image = newImagePath;
     }
 
+    const nextSalePrice = salePrice === "" ? 0 : (toNum(salePrice) ?? findProduct.salePrice);
+    // saleEndsAt yuborilgan bo'lsa yangilaymiz (bo'sh qiymat — muddatsiz); chegirma yo'q bo'lsa — null
+    const nextSaleEndsAt = !(nextSalePrice > 0)
+      ? null
+      : ("saleEndsAt" in req.body ? toDate(req.body.saleEndsAt) : findProduct.saleEndsAt);
+
     findProduct = toRecord((await pool.query(
       `UPDATE products SET image = $1, title = $2, description = $3, category = $4, brand = $5,
-       price = $6, sale_price = $7, total_stock = $8, average_review = $9, updated_at = NOW()
-       WHERE id = $10 RETURNING *`,
+       price = $6, sale_price = $7, total_stock = $8, average_review = $9, sale_ends_at = $10, updated_at = NOW()
+       WHERE id = $11 RETURNING *`,
       [newImagePath || findProduct.image, title || findProduct.title, description || findProduct.description,
         category || findProduct.category, brand || findProduct.brand,
         toNum(price) ?? findProduct.price,
-        salePrice === "" ? 0 : (toNum(salePrice) ?? findProduct.salePrice),
+        nextSalePrice,
         toNum(totalStock) ?? findProduct.totalStock,
-        toNum(averageReview) ?? findProduct.averageReview, id]
+        toNum(averageReview) ?? findProduct.averageReview, nextSaleEndsAt, id]
     )).rows[0]);
     res.status(200).json({
       success: true,

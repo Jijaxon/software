@@ -19,6 +19,8 @@ import Reveal from "@/components/common/reveal.jsx";
 import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useSearchParams} from "react-router-dom";
+import {useT} from "@/i18n/index.jsx";
+import {useDocumentTitle} from "@/lib/use-document-title.js";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -44,6 +46,7 @@ function ShoppingListing() {
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
   const {categoryLabel} = useTaxonomyLabels();
+  const {t} = useT();
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
@@ -90,9 +93,7 @@ function ShoppingListing() {
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem]?.quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast.warning(
-            `Bu mahsulotdan faqat ${getQuantity} ta qo'shish mumkin`
-          );
+          toast.warning(t("toast.onlyCanAdd", {count: getQuantity}));
 
           return;
         }
@@ -108,13 +109,13 @@ function ShoppingListing() {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Mahsulot savatga qo'shildi");
+        toast.success(t("toast.addedToCart"));
       }
     });
   }
 
   useEffect(() => {
-    setSort("price-lowtohigh");
+    setSort("popular");
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
   }, [categorySearchParam]);
 
@@ -136,8 +137,9 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  const activeSortLabel = sortOptions.find((sortItem) => sortItem.id === sort)?.label;
+  const activeSortLabel = sort ? t(`sort.${sort}`) : null;
   const activeCategory = filters?.category?.length === 1 ? categoryLabel(filters.category[0]) : null;
+  useDocumentTitle(activeCategory || t("menu.all-products"));
 
   return (
     <div className="bg-ivory">
@@ -146,13 +148,13 @@ function ShoppingListing() {
         <div className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-gold/20 blur-3xl"/>
         <div className="relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-16">
           <p className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">
-            NAFIS katalogi
+            {t("listing.eyebrow")}
           </p>
           <h1 className="mt-3 animate-fade-up font-display text-5xl font-medium text-espresso [animation-delay:100ms] md:text-6xl">
-            {activeCategory || "Barcha mahsulotlar"}
+            {activeCategory || t("menu.all-products")}
           </h1>
           <p className="mt-3 max-w-lg animate-fade-up text-sm leading-6 text-mocha/80 [animation-delay:200ms]">
-            Teringiz va uslubingizga mosini toping — kategoriya va brend bo'yicha saralang.
+            {t("listing.subtitle")}
           </p>
         </div>
       </section>
@@ -162,7 +164,7 @@ function ShoppingListing() {
         <div className="w-full">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm text-taupe">
-              <span className="font-semibold text-espresso">{productList?.length || 0}</span> ta mahsulot
+              <span className="font-semibold text-espresso">{productList?.length || 0}</span> {t("listing.count")}
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -172,7 +174,7 @@ function ShoppingListing() {
                   className="h-10 gap-2 rounded-full border-sand bg-white px-4 text-xs font-medium text-mocha hover:border-petal hover:bg-blush/50"
                 >
                   <ArrowUpDownIcon className="h-4 w-4"/>
-                  <span>{activeSortLabel || "Saralash"}</span>
+                  <span>{activeSortLabel || t("listing.sort")}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[240px] rounded-2xl border-sand p-2 shadow-xl shadow-mocha/10">
@@ -183,7 +185,7 @@ function ShoppingListing() {
                       key={sortItem.id}
                       className="cursor-pointer rounded-xl py-2.5 focus:bg-blush/60"
                     >
-                      {sortItem.label}
+                      {t(`sort.${sortItem.id}`)}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -218,8 +220,8 @@ function ShoppingListing() {
               <div className="grid h-20 w-20 animate-float place-items-center rounded-full bg-blush">
                 <PackageSearch className="h-8 w-8 text-rose-deep" strokeWidth={1.4}/>
               </div>
-              <h3 className="mt-6 font-display text-3xl font-medium text-espresso">Hech narsa topilmadi</h3>
-              <p className="mt-2 max-w-sm text-sm text-taupe">Boshqa filtrlarni tanlab ko'ring yoki barcha mahsulotlarni ko'zdan kechiring.</p>
+              <h3 className="mt-6 font-display text-3xl font-medium text-espresso">{t("listing.empty")}</h3>
+              <p className="mt-2 max-w-sm text-sm text-taupe">{t("listing.emptyText")}</p>
             </div>
           )}
         </div>

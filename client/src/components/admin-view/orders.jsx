@@ -10,6 +10,7 @@ import Pagination from "./pagination.jsx";
 import {useDispatch, useSelector} from "react-redux";
 import {getAllOrdersForAdmin, getOrderDetailsForAdmin, resetOrderDetails} from "@/store/admin/order-slice";
 import {Search} from "lucide-react";
+import OrderStatusBadge from "@/components/shopping-view/order-status.jsx";
 
 const PAGE_SIZE = 10;
 
@@ -45,7 +46,7 @@ function AdminOrdersView() {
     const list = orderList || [];
     if (!term) return list;
     return list.filter((o) =>
-      [o?._id, o?.userId?.username, o?.userId?.phone, o?.userId?.email, o?.paymentStatus]
+      [o?._id, o?.userId?.username, o?.userId?.phone, o?.userId?.email, o?.paymentStatus, o?.orderStatus, o?.couponCode]
         .some((v) => String(v || "").toLowerCase().includes(term))
     );
   }, [orderList, searchTerm]);
@@ -83,6 +84,7 @@ function AdminOrdersView() {
               <TableHead className="text-taupe">Sana</TableHead>
               <TableHead className="text-taupe">Summa</TableHead>
               <TableHead className="text-taupe">To'lov holati</TableHead>
+              <TableHead className="text-taupe">Holat</TableHead>
               <TableHead className="text-right text-taupe">Tafsilot</TableHead>
             </TableRow>
           </TableHeader>
@@ -104,6 +106,9 @@ function AdminOrdersView() {
                       {orderItem?.paymentStatus || "—"}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <OrderStatusBadge status={orderItem?.orderStatus}/>
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       onClick={() => handleFetchOrderDetails(orderItem?._id)}
@@ -116,7 +121,7 @@ function AdminOrdersView() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center text-taupe">
+                <TableCell colSpan={7} className="py-12 text-center text-taupe">
                   {(orderList?.length || 0) === 0 ? "Hali buyurtma yo'q" : "Qidiruv bo'yicha buyurtma topilmadi"}
                 </TableCell>
               </TableRow>

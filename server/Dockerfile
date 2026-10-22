@@ -12,11 +12,11 @@ RUN npm install --omit=dev
 COPY . .
 
 # Yuklangan fayllar uchun papkalar (volume bo'sh bo'lsa ham mavjud bo'lishi uchun)
-RUN mkdir -p uploads/products uploads/banners uploads/categories uploads/brands
+RUN mkdir -p uploads/products uploads/banners uploads/categories uploads/brands uploads/reviews uploads/broadcasts
 
 ENV NODE_ENV=production
 ENV PORT=5000
 EXPOSE 5000
 
 # Har safar ishga tushganda papkalar borligini kafolatlaymiz (mounted volume uchun)
-CMD ["sh", "-c", "mkdir -p uploads/products uploads/banners uploads/categories uploads/brands && node server.js"]
+CMD ["sh", "-c", "mkdir -p uploads/products uploads/banners uploads/categories uploads/brands uploads/reviews uploads/broadcasts && node server.js"]

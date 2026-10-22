@@ -24,6 +24,10 @@ const wishlistRouter = require("./routes/shop/wishlist-routes")
 
 const categoryRouter = require("./routes/admin/category-routes")
 const brandRouter = require("./routes/admin/brand-routes")
+const marketingRouter = require("./routes/admin/marketing-routes")
+const growthRouter = require("./routes/shop/growth-routes")
+const seoRouter = require("./routes/shop/seo-routes")
+const { startJobs } = require('./jobs')
 
 const { startTelegramBot } = require('./telegram/bot')
 
@@ -77,6 +81,10 @@ app.use("/api/common/feature", commonFeatureRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/brands", brandRouter);
 
+app.use("/api/admin/marketing", marketingRouter);
+app.use("/api/shop/growth", growthRouter);
+app.use("/api/seo", seoRouter);
+
 app.use("/api/dashboard", dashboardRouter);
 
 app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -88,6 +96,7 @@ initializeDatabase()
 		console.log('PostgreSQL connected and tables are ready')
 		app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
 		startTelegramBot()
+		startJobs()
 	})
 	.catch(async (error) => {
 		console.error('PostgreSQL startup failed:', error.message)

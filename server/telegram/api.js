@@ -65,6 +65,46 @@ function sendMessage(chatId, text, extra = {}) {
   });
 }
 
+// Rasm yuborish. photo: file_id / URL (string) yoki lokal fayl { buffer, filename }.
+// Lokal fayl multipart orqali yuklanadi — server ochiq URL'ga ega bo'lmasa ham ishlaydi.
+async function sendPhoto(chatId, photo, caption, extra = {}) {
+  if (typeof photo === 'string') {
+    return callTelegram('sendPhoto', { chat_id: chatId, photo, caption, parse_mode: 'HTML', ...extra });
+  }
+
+  const token = getToken();
+  if (!token) throw new Error('TELEGRAM_BOT_TOKEN .env faylida ko\'rsatilmagan');
+
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append('photo', new Blob([photo.buffer]), photo.filename || 'photo.jpg');
+  if (caption) form.append('caption', caption);
+  form.append('parse_mode', 'HTML');
+  for (const [key, value] of Object.entries(extra)) {
+    form.append(key, typeof value === 'string' ? value : JSON.stringify(value));
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+  try {
+    const response = await fetch(`${TELEGRAM_API_URL}/bot${token}/sendPhoto`, {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!data.ok) {
+      const error = new Error(data.description || 'Telegram API xatosi: sendPhoto');
+      error.code = data.error_code || response.status;
+      error.retryAfter = data.parameters?.retry_after;
+      throw error;
+    }
+    return data.result;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function getBotInfo() {
   if (botInfo) return botInfo;
   botInfo = await callTelegram('getMe');
@@ -79,4 +119,4 @@ async function getBotUsername() {
   return info.username;
 }
 
-module.exports = { callTelegram, sendMessage, getBotInfo, getBotUsername, isTelegramConfigured };
+module.exports = { callTelegram, sendMessage, sendPhoto, getBotInfo, getBotUsername, isTelegramConfigured };

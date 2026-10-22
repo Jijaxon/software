@@ -1,4 +1,4 @@
-import {HeartIcon, MessageCircle, ShieldCheck, ShoppingBag, Sparkles} from "lucide-react";
+import {Flame, HeartIcon, ImagePlus, MessageCircle, ShieldCheck, ShoppingBag, Sparkles, Timer, X} from "lucide-react";
 import {formatPrice} from "@/lib/utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -14,21 +14,30 @@ import  {toast} from "react-toastify";
 import instance from "@/utils/axios.js";
 import {addToWishlist, deleteWishlistItem, fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 import {useTaxonomyLabels} from "@/lib/use-taxonomy-labels.js";
+import Countdown from "@/components/common/countdown.jsx";
+import ShareButtons from "@/components/shopping-view/share-buttons.jsx";
+import {useT} from "@/i18n/index.jsx";
 
+const MAX_REVIEW_IMAGES = 3;
 
-function ProductDetailsDialog({ open, setOpen, productDetails }) {
+function ProductDetailsDialog({ open, setOpen, productDetails, onClose }) {
   const dispatch = useDispatch();
+  const {t} = useT();
   const {categoryLabel, brandLabel} = useTaxonomyLabels();
 
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
+  const [reviewImages, setReviewImages] = useState([]);
   const [heartKey, setHeartKey] = useState(0);
+  const [lightbox, setLightbox] = useState(null);
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
   const {wishlistItems} = useSelector(state => state.shopWishlist)
+  const lowStockThreshold = useSelector((state) => state.growth.settings.lowStockThreshold) || 5;
 
   const isInWishlist = Boolean(wishlistItems?.items?.find((el) => el?.productId === productDetails?._id));
+  const hasTimedSale = productDetails?.salePrice > 0 && productDetails?.saleEndsAt && new Date(productDetails.saleEndsAt) > new Date();
 
   function calculateSale() {
     return (productDetails?.price - (Number(productDetails?.price) * Number(productDetails?.salePrice) / 100)).toFixed(2)
@@ -48,8 +57,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast.warning(`Bu mahsulotdan faqat ${getQuantity} ta qo'shish mumkin`);
-
+          toast.warning(t("toast.onlyCanAdd", {count: getQuantity}));
           return;
         }
       }
@@ -63,42 +71,63 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Mahsulot savatga qo'shildi");
+        toast.success(t("toast.addedToCart"));
       }
     });
+  }
+
+  function resetReviewForm() {
+    setRating(0);
+    setReviewMsg("");
+    reviewImages.forEach((item) => URL.revokeObjectURL(item.preview));
+    setReviewImages([]);
   }
 
   function handleDialogClose() {
     setOpen(false);
     dispatch(setProductDetails());
-    setRating(0);
-    setReviewMsg("");
+    resetReviewForm();
+    onClose?.();
+  }
+
+  function handlePickImages(event) {
+    const files = Array.from(event.target.files || []).filter((file) => file.type.startsWith("image/"));
+    const room = MAX_REVIEW_IMAGES - reviewImages.length;
+    const next = files.slice(0, room).map((file) => ({file, preview: URL.createObjectURL(file)}));
+    setReviewImages((prev) => [...prev, ...next]);
+    event.target.value = "";
+  }
+
+  function removeReviewImage(index) {
+    setReviewImages((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
   function handleAddReview() {
     if (!user) {
-      toast.error("Fikr qoldirish uchun tizimga kiring");
+      toast.error(t("toast.loginToReview"));
       return;
     }
     if (!rating) {
-      toast.warning("Iltimos, baho tanlang");
+      toast.warning(t("toast.chooseRating"));
       return;
     }
 
-    dispatch(
-      addReview({
-        productId: productDetails?._id,
-        userId: user?.id,
-        userName: user?.userName,
-        reviewMessage: reviewMsg,
-        reviewValue: rating,
-      })
-    ).then((data) => {
+    const body = new FormData();
+    body.append("productId", productDetails?._id);
+    body.append("reviewMessage", reviewMsg);
+    body.append("reviewValue", String(rating));
+    reviewImages.forEach((item) => body.append("review_images", item.file));
+
+    dispatch(addReview(body)).then((data) => {
       if (data?.payload?.success) {
-        setRating(0);
-        setReviewMsg("");
+        resetReviewForm();
         dispatch(getReviews(productDetails?._id));
-        toast.success("Fikringiz uchun rahmat!");
+        toast.success(t("toast.reviewThanks"));
+      } else if (data?.payload?.message) {
+        toast.error(data.payload.message);
       }
     });
   }
@@ -118,12 +147,12 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     if (isInWishlist) {
       dispatch(deleteWishlistItem({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.info("Mahsulot istaklar ro'yxatidan olib tashlandi")
+        toast.info(t("toast.wishlistRemoved"))
       })
     } else {
       dispatch(addToWishlist({productId, userId: user?.id})).then(() => {
         dispatch(fetchWishlistItems(user?.id))
-        toast.success("Mahsulot istaklar ro'yxatiga qo'shildi")
+        toast.success(t("toast.wishlistAdded"))
       })
     }
   }
@@ -139,7 +168,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           />
           {productDetails?.salePrice > 0 ? (
             <span className="absolute left-5 top-5 animate-pop rounded-full bg-rose-deep px-3 py-1.5 text-xs font-semibold text-white shadow">
-              -{productDetails?.salePrice}% chegirma
+              {t("product.discount", {value: productDetails?.salePrice})}
             </span>
           ) : null}
         </div>
@@ -164,13 +193,18 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               {productDetails?.title}
             </DialogTitle>
 
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
               <div className="flex items-center gap-0.5">
                 <StarRatingComponent rating={averageReview} size="sm" />
               </div>
               <span className="text-xs text-taupe">
-                {averageReview.toFixed(1)} · {reviews?.length || 0} ta fikr
+                {averageReview.toFixed(1)} · {t("product.reviewsCount", {count: reviews?.length || 0})}
               </span>
+              {productDetails?.soldCount > 0 ? (
+                <span className="rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-mocha">
+                  {t("product.sold", {count: productDetails.soldCount})}
+                </span>
+              ) : null}
             </div>
 
             <div className="mt-6 flex items-baseline gap-3">
@@ -184,6 +218,14 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               )}
             </div>
 
+            {hasTimedSale ? (
+              <div className="mt-4 flex w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-deep to-rose px-4 py-2.5 text-white shadow-lg shadow-rose/30">
+                <Timer className="h-4 w-4"/>
+                <span className="text-xs font-medium">{t("countdown.saleEnds")}</span>
+                <Countdown endsAt={productDetails.saleEndsAt} className="font-display text-lg font-semibold"/>
+              </div>
+            ) : null}
+
             <DialogDescription className="mt-5 text-[15px] leading-7 text-mocha/90">
               {productDetails?.description}
             </DialogDescription>
@@ -192,7 +234,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="mt-8 flex animate-fade-up items-center gap-3 [animation-delay:120ms]">
             {productDetails?.totalStock === 0 ? (
               <Button disabled className="h-12 flex-1 rounded-full bg-sand text-mocha">
-                Sotuvda yo'q
+                {t("product.outOfStock")}
               </Button>
             ) : (
               <Button
@@ -200,13 +242,13 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   if (user) {
                     handleAddToCart(productDetails?._id, productDetails?.totalStock)
                   } else {
-                    toast.error("Xarid qilish uchun tizimga kiring")
+                    toast.error(t("toast.loginToBuy"))
                   }
                 }}
                 className="group h-12 flex-1 rounded-full bg-espresso text-sm font-semibold tracking-wide text-ivory transition-all duration-300 hover:bg-mocha hover:shadow-lg hover:shadow-mocha/25"
               >
                 <ShoppingBag className="transition-transform duration-300 group-hover:-rotate-12" />
-                Savatga qo'shish
+                {t("product.addToCart")}
               </Button>
             )}
             <Button
@@ -215,10 +257,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 if (user) {
                   toggleWishlist(productDetails?._id)
                 } else {
-                  toast.error("Istaklar ro'yxatiga qo'shish uchun tizimga kiring")
+                  toast.error(t("toast.loginToWishlist"))
                 }
               }}
-              aria-label="Istaklar ro'yxati"
+              aria-label={t("product.addWishlist")}
               className={`h-12 w-12 shrink-0 rounded-full border-sand bg-white transition-all duration-300 hover:border-petal hover:bg-blush ${isInWishlist ? "text-rose-deep" : "text-mocha"}`}
             >
               <HeartIcon
@@ -229,19 +271,26 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             </Button>
           </div>
 
-          {productDetails?.totalStock > 0 && productDetails?.totalStock < 5 ? (
-            <p className="mt-3 text-xs font-medium text-rose-deep">Shoshiling — omborda faqat {productDetails?.totalStock} ta qoldi</p>
+          {productDetails?.totalStock > 0 && productDetails?.totalStock <= lowStockThreshold ? (
+            <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-rose-deep">
+              <Flame className="h-3.5 w-3.5 animate-pulse"/>
+              {t("product.hurry", {count: productDetails?.totalStock})}
+            </p>
           ) : null}
 
           <div className="mt-6 flex items-center gap-2 rounded-2xl bg-cream px-4 py-3 text-xs text-mocha">
             <ShieldCheck className="h-4 w-4 shrink-0 text-sage"/>
-            Original mahsulot, ishonchli brenddan
+            {t("product.original")}
+          </div>
+
+          <div className="mt-5">
+            <ShareButtons product={productDetails}/>
           </div>
 
           <div className="mt-10">
             <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-espresso">
               <MessageCircle className="h-5 w-5 text-rose" strokeWidth={1.6}/>
-              Mijozlar fikri
+              {t("product.reviews")}
             </h2>
             <div className="mt-5 grid gap-4">
               {reviews && reviews.length > 0 ? (
@@ -253,7 +302,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-blush text-sm font-semibold text-rose-deep">
-                        {(reviewItem?.userName || reviewItem?.userId?.username || "?")[0]?.toUpperCase()}
+                        {(reviewItem?.userName || reviewItem?.userId?.username || "?").replace(/^\+/, "")[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid min-w-0 gap-1">
@@ -261,21 +310,34 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                       <div className="flex items-center gap-0.5">
                         <StarRatingComponent rating={reviewItem?.reviewValue} size="sm" />
                       </div>
-                      <p className="text-sm leading-6 text-mocha/90">
-                        {reviewItem?.reviewMessage}
-                      </p>
+                      {reviewItem?.reviewMessage ? (
+                        <p className="text-sm leading-6 text-mocha/90">{reviewItem.reviewMessage}</p>
+                      ) : null}
+                      {reviewItem?.images?.length ? (
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {reviewItem.images.map((src) => (
+                            <button
+                              key={src}
+                              onClick={() => setLightbox(instance.defaults.baseURL + src)}
+                              className="h-20 w-20 overflow-hidden rounded-xl border border-sand transition-transform hover:scale-105"
+                            >
+                              <img src={instance.defaults.baseURL + src} alt="" loading="lazy" className="h-full w-full object-cover"/>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ))
               ) : (
                 <p className="rounded-2xl border border-dashed border-sand px-4 py-6 text-center text-sm text-taupe">
-                  Hali fikr qoldirilmagan. Birinchi bo'ling!
+                  {t("product.noReviews")}
                 </p>
               )}
             </div>
 
             <div className="mt-8 rounded-2xl border border-sand bg-white p-5">
-              <p className="text-sm font-semibold text-espresso">Fikr qoldiring</p>
+              <p className="text-sm font-semibold text-espresso">{t("product.leaveReview")}</p>
               <div className="mt-3 flex gap-1">
                 <StarRatingComponent
                   rating={rating}
@@ -283,25 +345,61 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   size="lg"
                 />
               </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {reviewImages.map((item, index) => (
+                  <div key={item.preview} className="relative h-16 w-16 overflow-hidden rounded-xl border border-sand">
+                    <img src={item.preview} alt="" className="h-full w-full object-cover"/>
+                    <button
+                      onClick={() => removeReviewImage(index)}
+                      className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-espresso/80 text-white"
+                      aria-label="remove"
+                    >
+                      <X className="h-3 w-3"/>
+                    </button>
+                  </div>
+                ))}
+                {reviewImages.length < MAX_REVIEW_IMAGES ? (
+                  <label className="flex h-16 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-petal px-3 text-xs text-mocha transition-colors hover:bg-blush/40">
+                    <ImagePlus className="h-4 w-4 text-rose-deep"/>
+                    <span>
+                      {t("product.addPhotos")}
+                      <span className="block text-[10px] text-taupe">{t("product.photosHint")}</span>
+                    </span>
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handlePickImages}/>
+                  </label>
+                ) : null}
+              </div>
+
               <div className="mt-4 flex gap-2">
                 <Input
                   name="reviewMsg"
                   value={reviewMsg}
                   onChange={(event) => setReviewMsg(event.target.value)}
-                  placeholder="Mahsulot haqida fikringiz..."
+                  placeholder={t("product.reviewPlaceholder")}
                   className="h-11 rounded-full border-sand bg-ivory px-4 focus-visible:ring-rose"
                 />
                 <Button
                   onClick={handleAddReview}
-                  disabled={reviewMsg.trim() === ""}
+                  disabled={reviewMsg.trim() === "" && reviewImages.length === 0}
                   className="h-11 rounded-full bg-espresso px-5 text-ivory hover:bg-mocha"
                 >
-                  Yuborish
+                  {t("product.send")}
                 </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {lightbox ? (
+          <button
+            onClick={() => setLightbox(null)}
+            className="fixed inset-0 z-50 grid place-items-center bg-espresso/80 p-6 backdrop-blur-sm"
+            aria-label={t("common.close")}
+          >
+            <img src={lightbox} alt="" className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"/>
+          </button>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

@@ -16,6 +16,8 @@ const botCommands = [
   { command: 'forgot', description: 'Parolni tiklash kodini olish' },
   { command: 'profil', description: 'Ulangan hisob ma\'lumotlari' },
   { command: 'sayt', description: 'Sayt havolalari' },
+  { command: 'obuna', description: 'Aksiya xabarlarini yoqish' },
+  { command: 'stop', description: 'Aksiya xabarlarini o\'chirish' },
   { command: 'help', description: 'Yordam' },
 ];
 
@@ -274,6 +276,26 @@ async function handleProfileCommand(message) {
   );
 }
 
+// /stop va /obuna — aksiya (marketing) xabarlariga obunani boshqarish.
+// Buyurtma holati kabi muhim xabarlar baribir yuboriladi.
+async function handleSubscription(message, optIn) {
+  const chatId = message.chat.id;
+  const { rowCount } = await pool.query(
+    'UPDATE users SET marketing_opt_in = $1 WHERE telegram_chat_id = $2 AND verify = TRUE',
+    [optIn, chatId]
+  );
+  if (!rowCount) {
+    await sendMessage(chatId, texts.notLinked);
+    return;
+  }
+  await sendMessage(
+    chatId,
+    optIn
+      ? "🔔 Aksiya va chegirmalar haqidagi xabarlar yoqildi. O'chirish uchun — /stop"
+      : "🔕 Aksiya xabarlari o'chirildi. Buyurtmalaringiz holati haqida baribir xabar beramiz.\n\nQayta yoqish — /obuna"
+  );
+}
+
 async function handleMessage(message) {
   if (!message || message.chat?.type !== 'private') return;
 
@@ -309,6 +331,14 @@ async function handleMessage(message) {
     case '/sayt':
     case '/site':
       await sendMessage(message.chat.id, texts.site);
+      break;
+    case '/stop':
+    case '/unsubscribe':
+      await handleSubscription(message, false);
+      break;
+    case '/obuna':
+    case '/subscribe':
+      await handleSubscription(message, true);
       break;
     case '/help':
     case '/yordam':

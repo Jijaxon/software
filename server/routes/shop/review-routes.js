@@ -1,4 +1,6 @@
 const express = require("express");
+const { upload } = require("../../middleware/upload");
+const { authMiddleware } = require("../../middleware/auth");
 
 const {
   addProductReview,
@@ -7,7 +9,8 @@ const {
 
 const router = express.Router();
 
-router.post("/add", addProductReview);
+// 3 tagacha rasm bilan sharh
+router.post("/add", authMiddleware, upload.array("review_images", 3), addProductReview);
 router.get("/:productId", getProductReviews);
 
 module.exports = router;

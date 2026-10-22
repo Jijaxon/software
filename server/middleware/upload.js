@@ -19,17 +19,22 @@ const storage = multer.diskStorage({
   // },
 
   destination: (req, file, cb) => {
-    if (file.fieldname === "product_image") {
-      cb(null, 'uploads/products');
-    } else if (file.fieldname === "banner") {
-      cb(null, 'uploads/banners');
-    } else if (file.fieldname === "category_image") {
-      cb(null, 'uploads/categories');
-    } else if (file.fieldname === "brand_image") {
-      cb(null, 'uploads/brands');
-    } else {
+    const folders = {
+      product_image: 'uploads/products',
+      banner: 'uploads/banners',
+      category_image: 'uploads/categories',
+      brand_image: 'uploads/brands',
+      review_images: 'uploads/reviews',
+      broadcast_image: 'uploads/broadcasts',
+    };
+    const folder = folders[file.fieldname];
+    if (!folder) {
       cb(new Error(`Invalid field name: ${file.fieldname}`), false);
+      return;
     }
+    // Papka yo'q bo'lsa yaratamiz (yangi volume/clone uchun)
+    fs.mkdirSync(folder, { recursive: true });
+    cb(null, folder);
   },
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);

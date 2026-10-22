@@ -2,14 +2,17 @@ import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import {Instagram, Send, Sparkles} from "lucide-react";
 import {categoryOptionsMap} from "@/config";
+import {useT} from "@/i18n/index.jsx";
+import {localizedName} from "@/lib/use-taxonomy-labels.js";
 
 function ShoppingFooter() {
   const navigate = useNavigate();
   const {categories} = useSelector((state) => state.taxonomy);
+  const {t, lang} = useT();
 
   // Bazadan kelgan bo'limlar; bo'sh bo'lsa config'dagi standart ro'yxat
   const footerCategories = categories?.length
-    ? categories.map((c) => ({id: c.slug, label: c.name}))
+    ? categories.map((c) => ({id: c.slug, label: localizedName(c, lang)}))
     : Object.entries(categoryOptionsMap).map(([id, label]) => ({id, label}));
 
   function handleCategory(categoryId) {
@@ -29,7 +32,7 @@ function ShoppingFooter() {
             <span className="font-display text-3xl font-semibold tracking-[0.2em]">NAFIS</span>
           </Link>
           <p className="mt-5 max-w-sm text-sm leading-7 text-ivory/65">
-            Har kungi go'zallik marosimingiz uchun sevimli brendlarning ishonchli mahsulotlari — bir joyda.
+            {t("footer.about")}
           </p>
           <div className="mt-6 flex gap-3">
             <a
@@ -54,7 +57,7 @@ function ShoppingFooter() {
         </div>
 
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-petal">Bo'limlar</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-petal">{t("footer.sections")}</h4>
           <ul className="mt-5 space-y-3 text-sm text-ivory/70">
             {footerCategories.map(({id, label}) => (
               <li key={id}>
@@ -69,17 +72,18 @@ function ShoppingFooter() {
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-petal">NAFIS</h4>
           <ul className="mt-5 space-y-3 text-sm text-ivory/70">
-            <li><Link to="/shop/about" className="transition-colors hover:text-ivory">Biz haqimizda</Link></li>
-            <li><Link to="/shop/search" className="transition-colors hover:text-ivory">Qidiruv</Link></li>
-            <li><Link to="/shop/account" className="transition-colors hover:text-ivory">Buyurtmalarim</Link></li>
+            <li><Link to="/shop/about" className="transition-colors hover:text-ivory">{t("menu.about_us")}</Link></li>
+            <li><Link to="/shop/search" className="transition-colors hover:text-ivory">{t("menu.search")}</Link></li>
+            <li><Link to="/shop/quiz" className="transition-colors hover:text-ivory">{t("menu.quiz")}</Link></li>
+            <li><Link to="/shop/account" className="transition-colors hover:text-ivory">{t("header.orders")}</Link></li>
           </ul>
         </div>
       </div>
 
       <div className="relative border-t border-ivory/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-6 text-xs text-ivory/45 md:flex-row md:px-10">
-          <span>© {new Date().getFullYear()} NAFIS. Barcha huquqlar himoyalangan.</span>
-          <span>Go'zallik — o'zingizga mehr bilan qarashdan boshlanadi.</span>
+          <span>© {new Date().getFullYear()} NAFIS. {t("footer.rights")}</span>
+          <span>{t("footer.motto")}</span>
         </div>
       </div>
     </footer>

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /shop/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /shop/checkout
+Disallow: /shop/account
+
+Sitemap: https://cosmetic.saloxiddin.uz/api/seo/sitemap.xml

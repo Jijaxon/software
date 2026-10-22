@@ -19,7 +19,7 @@ import {
 import {addTaxonomy, deleteTaxonomy, fetchTaxonomy, updateTaxonomy} from "@/store/admin/taxonomy-slice/index.js";
 import instance from "@/utils/axios.js";
 
-const emptyForm = {name: "", slug: "", description: "", sortOrder: "", isActive: true};
+const emptyForm = {name: "", nameRu: "", slug: "", description: "", sortOrder: "", isActive: true};
 
 function TaxonomyManager({type, title, subtitle, emptyLabel}) {
   const dispatch = useDispatch();
@@ -62,6 +62,7 @@ function TaxonomyManager({type, title, subtitle, emptyLabel}) {
     setEditId(item._id);
     setForm({
       name: item.name || "",
+      nameRu: item.nameRu || "",
       slug: item.slug || "",
       description: item.description || "",
       sortOrder: item.sortOrder ?? "",
@@ -83,6 +84,7 @@ function TaxonomyManager({type, title, subtitle, emptyLabel}) {
       type,
       formData: {
         name: form.name,
+        nameRu: form.nameRu,
         slug: form.slug,
         description: form.description,
         sortOrder: form.sortOrder === "" ? 0 : form.sortOrder,
@@ -252,6 +254,16 @@ function TaxonomyManager({type, title, subtitle, emptyLabel}) {
                 value={form.name}
                 onChange={(e) => setForm({...form, name: e.target.value})}
                 placeholder="Masalan, Yuz parvarishi"
+              />
+            </div>
+
+            <div>
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">Nomi (ruscha)</Label>
+              <Input
+                className="mt-1.5 h-11 rounded-2xl border-sand"
+                value={form.nameRu}
+                onChange={(e) => setForm({...form, nameRu: e.target.value})}
+                placeholder="Например, Уход за лицом"
               />
             </div>
 

@@ -24,6 +24,11 @@ import PaymentSuccessPage from "@/pages/shopping-view/payment-success.jsx";
 import Banner from "@/pages/admin-view/banner.jsx";
 import AdminCategories from "@/pages/admin-view/categories.jsx";
 import AdminBrands from "@/pages/admin-view/brands.jsx";
+import AdminCoupons from "@/pages/admin-view/coupons.jsx";
+import AdminMarketing from "@/pages/admin-view/marketing.jsx";
+import AdminSettings from "@/pages/admin-view/settings.jsx";
+import ShoppingProductPage from "@/pages/shopping-view/product.jsx";
+import ShoppingQuiz from "@/pages/shopping-view/quiz.jsx";
 import AuthVerify from "@/pages/auth/verify.jsx";
 import AuthForgotPassword from "@/pages/auth/forgot-password.jsx";
 
@@ -65,6 +70,9 @@ function App() {
           <Route path="banners" element={<Banner/>}/>
           <Route path="categories" element={<AdminCategories/>}/>
           <Route path="brands" element={<AdminBrands/>}/>
+          <Route path="coupons" element={<AdminCoupons/>}/>
+          <Route path="marketing" element={<AdminMarketing/>}/>
+          <Route path="settings" element={<AdminSettings/>}/>
         </Route>
         <Route path="shop" element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><ShoppingLayout/></CheckAuth>}>
           <Route path="home" element={<ShoppingHome/>}/>
@@ -75,6 +83,8 @@ function App() {
           <Route path="about" element={<About/>}/>
           <Route path="search" element={<Search/>}/>
           <Route path="account" element={<ShoppingAccount/>}/>
+          <Route path="product/:id" element={<ShoppingProductPage/>}/>
+          <Route path="quiz" element={<ShoppingQuiz/>}/>
         </Route>
 
         <Route path="/" element={<Navigate to={'/shop/home'} />}/>

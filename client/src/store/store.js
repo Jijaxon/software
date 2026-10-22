@@ -14,6 +14,8 @@ import shopSearchSlice from "./shop/search-slice";
 import commonFeatureSlice from "./common-slice";
 import dashboardSlice from "@/store/admin/dashboard-slice/index.js";
 import taxonomySlice from "@/store/admin/taxonomy-slice/index.js";
+import growthSlice from "@/store/shop/growth-slice/index.js";
+import marketingSlice from "@/store/admin/marketing-slice/index.js";
 
 const store = configureStore({
   reducer: {
@@ -21,6 +23,7 @@ const store = configureStore({
 
     dashboard: dashboardSlice,
     taxonomy: taxonomySlice,
+    marketing: marketingSlice,
     adminProducts: adminProductsSlice,
     adminOrder: adminOrderSlice,
 
@@ -33,6 +36,7 @@ const store = configureStore({
 
     shopSearch: shopSearchSlice,
     commonFeature: commonFeatureSlice,
+    growth: growthSlice,
 
   },
 });

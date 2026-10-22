@@ -57,9 +57,9 @@ function createTaxonomyController({ table, uploadDir }) {
       const sortOrder = Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0;
 
       const data = toRecord((await pool.query(
-        `INSERT INTO ${table} (name, slug, description, image, is_active, sort_order)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [name.trim(), slug, description || null, image, isActive, sortOrder]
+        `INSERT INTO ${table} (name, slug, description, image, is_active, sort_order, name_ru)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [name.trim(), slug, description || null, image, isActive, sortOrder, req.body.nameRu?.trim() || null]
       )).rows[0]);
 
       res.status(201).json({ success: true, data });
@@ -102,8 +102,9 @@ function createTaxonomyController({ table, uploadDir }) {
 
       const data = toRecord((await pool.query(
         `UPDATE ${table} SET name = $1, slug = $2, description = $3, image = $4,
-         is_active = $5, sort_order = $6, updated_at = NOW() WHERE id = $7 RETURNING *`,
-        [name, slug, description, image, isActive, sortOrder, id]
+         is_active = $5, sort_order = $6, name_ru = $7, updated_at = NOW() WHERE id = $8 RETURNING *`,
+        [name, slug, description, image, isActive, sortOrder,
+          req.body.nameRu !== undefined ? (req.body.nameRu.trim() || null) : current.nameRu, id]
       )).rows[0]);
 
       res.status(200).json({ success: true, data });

@@ -66,6 +66,7 @@ function CheckAuth({ isAuthenticated, user, children }) {
     "/shop/listing",
     "/shop/search",
     "/shop/about",
+    "/shop/quiz",
   ];
 
   // agar product detail bo‘lsa "/shop/product/123"

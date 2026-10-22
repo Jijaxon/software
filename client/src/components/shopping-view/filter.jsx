@@ -4,15 +4,13 @@ import { filterOptions } from "@/config";
 import { Checkbox } from "../ui/checkbox";
 import { SlidersHorizontal } from "lucide-react";
 import { fetchTaxonomy } from "@/store/admin/taxonomy-slice/index.js";
-
-const sectionLabels = {
-  category: "Kategoriya",
-  brand: "Brend",
-};
+import { useT } from "@/i18n/index.jsx";
+import { localizedName } from "@/lib/use-taxonomy-labels.js";
 
 function ProductFilter({ filters, handleFilter }) {
   const dispatch = useDispatch();
   const { categories, brands } = useSelector((state) => state.taxonomy);
+  const { t, lang } = useT();
 
   useEffect(() => {
     dispatch(fetchTaxonomy({ type: "category", activeOnly: true }));
@@ -22,10 +20,10 @@ function ProductFilter({ filters, handleFilter }) {
   // Bazadan kelgan kategoriya/brendlar; bo'sh bo'lsa config'dagi standart ro'yxatga qaytamiz
   const dynamicOptions = {
     category: categories?.length
-      ? categories.map((c) => ({ id: c.slug, label: c.name }))
+      ? categories.map((c) => ({ id: c.slug, label: localizedName(c, lang) }))
       : filterOptions.category,
     brand: brands?.length
-      ? brands.map((b) => ({ id: b.slug, label: b.name }))
+      ? brands.map((b) => ({ id: b.slug, label: localizedName(b, lang) }))
       : filterOptions.brand,
   };
 
@@ -39,7 +37,7 @@ function ProductFilter({ filters, handleFilter }) {
       <div className="flex items-center justify-between border-b border-sand pb-4">
         <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-espresso">
           <SlidersHorizontal className="h-4 w-4 text-rose-deep" />
-          Saralash
+          {t("filter.title")}
         </h2>
         {activeCount > 0 ? (
           <span key={activeCount} className="grid h-6 min-w-6 animate-pop place-items-center rounded-full bg-rose-deep px-1.5 text-[11px] font-semibold text-white">
@@ -51,7 +49,7 @@ function ProductFilter({ filters, handleFilter }) {
         {Object.keys(dynamicOptions).map((keyItem) => (
           <div key={keyItem}>
             <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-              {sectionLabels[keyItem] || keyItem}
+              {t(`filter.${keyItem}`)}
             </h3>
             <div className="grid gap-1">
               {dynamicOptions[keyItem].map((option) => {

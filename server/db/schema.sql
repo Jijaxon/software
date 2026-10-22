@@ -178,3 +178,113 @@ INSERT INTO brands (name, slug, sort_order) VALUES
   ('Dior', 'dior', 5),
   ('Fenty Beauty', 'fenty-beauty', 6)
 ON CONFLICT (slug) DO NOTHING;
+
+-- ===================== Marketing va o'sish funksiyalari =====================
+
+-- Do'kon sozlamalari (admin paneldan boshqariladi): kalit -> JSON qiymat
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO settings (key, value) VALUES
+  ('delivery_fee', '25000'),
+  ('free_delivery_threshold', '150000'),
+  ('referral_bonus', '15000'),
+  ('abandoned_cart_enabled', 'true'),
+  ('abandoned_cart_hours', '3'),
+  ('abandoned_cart_discount', '10'),
+  ('low_stock_threshold', '5'),
+  ('flash_sale', '{"enabled": false, "title": "", "subtitle": "", "endsAt": null}')
+ON CONFLICT (key) DO NOTHING;
+
+-- Mahsulot: chegirma tugash vaqti (countdown) va sotilganlar soni (ijtimoiy isbot)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS sale_ends_at TIMESTAMPTZ;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS sold_count INTEGER NOT NULL DEFAULT 0;
+
+-- Foydalanuvchi: referal, bonus balansi, til va reklama xabarlariga obuna
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_balance NUMERIC(12, 2) NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_rewarded BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS marketing_opt_in BOOLEAN NOT NULL DEFAULT TRUE;
+CREATE UNIQUE INDEX IF NOT EXISTS users_referral_code_key ON users(referral_code);
+
+-- Buyurtma: narx tarkibi (server hisoblaydi)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal NUMERIC(12, 2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee NUMERIC(12, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(12, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS bonus_used NUMERIC(12, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+
+-- Savat: tashlab ketilgan savat eslatmasi qachon yuborilgani
+ALTER TABLE carts ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ;
+
+-- Sharhlar: rasmlar
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS images JSONB NOT NULL DEFAULT '[]'::JSONB;
+
+-- Promokodlar
+CREATE TABLE IF NOT EXISTS coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL UNIQUE,
+  description TEXT,
+  discount_type TEXT NOT NULL DEFAULT 'percent' CHECK (discount_type IN ('percent', 'fixed')),
+  discount_value NUMERIC(12, 2) NOT NULL CHECK (discount_value > 0),
+  min_order NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  max_uses INTEGER,
+  used_count INTEGER NOT NULL DEFAULT 0,
+  per_user_limit INTEGER NOT NULL DEFAULT 1,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- shaxsiy kupon (masalan, savat eslatmasi)
+  starts_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  source TEXT NOT NULL DEFAULT 'admin', -- admin | abandoned_cart
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  discount_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (coupon_id, order_id)
+);
+CREATE INDEX IF NOT EXISTS coupon_redemptions_user_idx ON coupon_redemptions(coupon_id, user_id);
+
+-- Bonus harakatlari (referal mukofoti, xaridda ishlatish)
+CREATE TABLE IF NOT EXISTS bonus_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount NUMERIC(12, 2) NOT NULL,
+  reason TEXT NOT NULL, -- referral_inviter | referral_invitee | order_spend
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS bonus_transactions_user_idx ON bonus_transactions(user_id);
+
+-- Telegram ommaviy xabarlar tarixi
+CREATE TABLE IF NOT EXISTS broadcasts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  message TEXT NOT NULL,
+  image TEXT,
+  button_text TEXT,
+  button_url TEXT,
+  status TEXT NOT NULL DEFAULT 'sending', -- sending | done
+  total_count INTEGER NOT NULL DEFAULT 0,
+  sent_count INTEGER NOT NULL DEFAULT 0,
+  failed_count INTEGER NOT NULL DEFAULT 0,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  finished_at TIMESTAMPTZ
+);
+
+-- Rus tili uchun kategoriya/brend nomlari (ixtiyoriy)
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS name_ru TEXT;
+ALTER TABLE brands ADD COLUMN IF NOT EXISTS name_ru TEXT;
+UPDATE categories SET name_ru = v.ru FROM (VALUES
+  ('skincare', 'Уход за лицом'), ('makeup', 'Макияж'), ('fragrance', 'Парфюмерия'), ('haircare', 'Уход за волосами')
+) AS v(slug, ru) WHERE categories.slug = v.slug AND categories.name_ru IS NULL;

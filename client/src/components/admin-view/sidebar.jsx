@@ -3,9 +3,12 @@ import {
   ImageIcon,
   LayoutDashboard,
   Layers3,
+  Megaphone,
+  Settings,
   Sparkles,
   ShoppingBasket,
   Tag,
+  TicketPercent,
 } from "lucide-react";
 import {Fragment} from "react";
 import {NavLink, useNavigate} from "react-router-dom";
@@ -24,6 +27,9 @@ const adminSidebarMenuItems = [
   {id: "brands", label: "Brendlar", path: "/admin/brands", icon: Tag},
   {id: "products", label: "Mahsulotlar", path: "/admin/products", icon: ShoppingBasket},
   {id: "orders", label: "Buyurtmalar", path: "/admin/orders", icon: BadgeCheck},
+  {id: "coupons", label: "Promokodlar", path: "/admin/coupons", icon: TicketPercent},
+  {id: "marketing", label: "Telegram marketing", path: "/admin/marketing", icon: Megaphone},
+  {id: "settings", label: "Sozlamalar", path: "/admin/settings", icon: Settings},
 ];
 
 function Brand({onClick}) {
@@ -42,7 +48,7 @@ function Brand({onClick}) {
 
 function MenuItems({setOpen}) {
   return (
-    <nav className="mt-10 flex flex-col gap-1.5">
+    <nav className="nafis-scroll mt-10 flex flex-col gap-1.5 overflow-y-auto">
       {adminSidebarMenuItems.map((menuItem) => {
         const Icon = menuItem.icon;
         return (

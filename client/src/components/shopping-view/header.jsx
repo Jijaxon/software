@@ -21,16 +21,23 @@ import {fetchCartItems} from "@/store/shop/cart-slice";
 import {fetchWishlistItems} from "@/store/shop/wishlist-slice/index.js";
 import {fetchTaxonomy} from "@/store/admin/taxonomy-slice/index.js";
 import UserWishlistWrapper from "@/components/shopping-view/wishlist-wrapper.jsx";
-
-const announcements = [
-  "Original mahsulotlar",
-  "Sevimli brendlar bir joyda",
-  "Yuz va soch parvarishi",
-  "Makiyaj va atirlar",
-  "O'zingizga mehr bilan qarang",
-];
+import FlashSaleBar from "@/components/shopping-view/flash-sale-bar.jsx";
+import LanguageSwitcher from "@/components/shopping-view/language-switcher.jsx";
+import {useT} from "@/i18n/index.jsx";
+import {localizedName} from "@/lib/use-taxonomy-labels.js";
+import {formatPrice} from "@/lib/utils";
 
 function AnnouncementBar() {
+  const {t} = useT();
+  const threshold = useSelector((state) => state.growth.settings.freeDeliveryThreshold);
+  const announcements = [
+    threshold > 0 ? t("announce.freeDelivery", {amount: formatPrice(threshold)}) : null,
+    t("announce.1"),
+    t("announce.2"),
+    t("announce.3"),
+    t("announce.4"),
+    t("announce.5"),
+  ].filter(Boolean);
   const items = [...announcements, ...announcements];
 
   return (
@@ -55,16 +62,21 @@ function MenuItems({onNavigate, variant = "desktop"}) {
   const activeCategory = searchParams.get("category");
   const isListing = location.pathname.includes("listing");
   const {categories} = useSelector((state) => state.taxonomy);
+  const {t, lang} = useT();
 
   useEffect(() => {
     dispatch(fetchTaxonomy({type: "category", activeOnly: true}));
   }, [dispatch]);
 
   // Statik bo'limlar o'rtasiga bazadan kelgan kategoriyalarni joylaymiz
-  const staticHead = shoppingViewHeaderMenuItems.filter((m) => ["home", "all-products"].includes(m.id));
-  const staticTail = shoppingViewHeaderMenuItems.filter((m) => ["search", "about_us"].includes(m.id));
+  const translate = (m) => ({...m, label: t(`menu.${m.id}`)});
+  const staticHead = shoppingViewHeaderMenuItems.filter((m) => ["home", "all-products"].includes(m.id)).map(translate);
+  const staticTail = [
+    ...shoppingViewHeaderMenuItems.filter((m) => ["search", "about_us"].includes(m.id)),
+    {id: "quiz", path: "/shop/quiz"},
+  ].map(translate);
   const categoryItems = categories?.length
-    ? categories.map((c) => ({id: c.slug, label: c.name, path: "/shop/listing"}))
+    ? categories.map((c) => ({id: c.slug, label: localizedName(c, lang), path: "/shop/listing"}))
     : shoppingViewHeaderMenuItems.filter(
         (m) => !["home", "all-products", "search", "about_us"].includes(m.id)
       );
@@ -82,7 +94,8 @@ function MenuItems({onNavigate, variant = "desktop"}) {
       getCurrentMenuItem.id !== "home" &&
       getCurrentMenuItem.id !== "all-products" &&
       getCurrentMenuItem.id !== "about_us" &&
-      getCurrentMenuItem.id !== "search"
+      getCurrentMenuItem.id !== "search" &&
+      getCurrentMenuItem.id !== "quiz"
         ? {
           category: [getCurrentMenuItem.id],
         }
@@ -119,7 +132,7 @@ function MenuItems({onNavigate, variant = "desktop"}) {
   return (
     <nav className="flex items-center gap-6 xl:gap-8">
       {menuItems
-        .filter((menuItem) => !["home", "search", "about_us"].includes(menuItem.id))
+        .filter((menuItem) => !["home", "search", "about_us", "quiz"].includes(menuItem.id))
         .map((menuItem) => (
           <button
             onClick={() => handleNavigate(menuItem)}
@@ -158,6 +171,7 @@ function HeaderRightContent() {
   const [openWishlistSheet, setOpenWishlistSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {t} = useT();
 
   function handleLogout() {
     dispatch(logoutUser());
@@ -171,12 +185,13 @@ function HeaderRightContent() {
 
   return (
     <div className="flex items-center gap-1 sm:gap-2">
+      <LanguageSwitcher className="mr-1 hidden sm:flex"/>
       <Button
         onClick={() => navigate("/shop/search")}
         variant="ghost"
         size="icon"
-        title="Qidiruv"
-        aria-label="Qidiruv"
+        title={t("menu.search")}
+        aria-label={t("menu.search")}
         className={`${iconButtonClass} hidden sm:inline-flex`}
       >
         <Search className="!h-[18px] !w-[18px]" strokeWidth={1.7}/>
@@ -186,12 +201,12 @@ function HeaderRightContent() {
           onClick={() => setOpenWishlistSheet(true)}
           variant="ghost"
           size="icon"
-          title="Istaklar"
+          title={t("header.wishlist")}
           className={iconButtonClass}
         >
           <HeartIcon className="!h-[18px] !w-[18px]" strokeWidth={1.7}/>
           <CountBadge count={wishlistItems?.items?.length}/>
-          <span className="sr-only">Istaklar ro'yxati</span>
+          <span className="sr-only">{t("header.wishlist")}</span>
         </Button>
         <UserWishlistWrapper
           setOpenWishlistSheet={setOpenWishlistSheet}
@@ -207,12 +222,12 @@ function HeaderRightContent() {
           onClick={() => setOpenCartSheet(true)}
           variant="ghost"
           size="icon"
-          title="Savat"
+          title={t("header.cart")}
           className={iconButtonClass}
         >
           <ShoppingBag className="!h-[18px] !w-[18px]" strokeWidth={1.7}/>
           <CountBadge count={cartItems?.items?.length}/>
-          <span className="sr-only">Savat</span>
+          <span className="sr-only">{t("header.cart")}</span>
         </Button>
         <UserCartWrapper
           setOpenCartSheet={setOpenCartSheet}
@@ -237,22 +252,22 @@ function HeaderRightContent() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={10} className="w-60 rounded-2xl border-sand p-2 shadow-xl shadow-mocha/10">
             <DropdownMenuLabel className="px-3 py-2">
-              <span className="block text-xs font-normal text-taupe">Xush kelibsiz</span>
+              <span className="block text-xs font-normal text-taupe">{t("header.welcome")}</span>
               <span className="block truncate font-display text-lg font-semibold text-espresso">{displayName(user)}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-sand"/>
             <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 focus:bg-blush/60" onClick={() => navigate("/shop/account")}>
               <UserCog className="mr-2 h-4 w-4 text-rose-deep"/>
-              Profilim
+              {t("header.profile")}
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 focus:bg-blush/60" onClick={() => navigate("/shop/account")}>
               <Package className="mr-2 h-4 w-4 text-rose-deep"/>
-              Buyurtmalarim
+              {t("header.orders")}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-sand"/>
             <DropdownMenuItem className="cursor-pointer rounded-xl px-3 py-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4"/>
-              Chiqish
+              {t("header.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -263,7 +278,7 @@ function HeaderRightContent() {
           onClick={() => navigate("/auth/login")}
         >
           <UserRound className="h-4 w-4"/>
-          <span className="hidden sm:inline">Kirish</span>
+          <span className="hidden sm:inline">{t("header.login")}</span>
         </Button>
       )}
     </div>
@@ -275,6 +290,7 @@ function ShoppingHeader() {
   const [openMenu, setOpenMenu] = useState(false);
   const {user} = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const {t} = useT();
 
   useEffect(() => {
     function handleScroll() {
@@ -288,6 +304,7 @@ function ShoppingHeader() {
 
   return (
     <>
+      <FlashSaleBar/>
       <AnnouncementBar/>
       <header
         className={`sticky top-0 z-40 w-full border-b transition-all duration-500 ${
@@ -306,7 +323,7 @@ function ShoppingHeader() {
                 className="h-10 w-10 rounded-full hover:bg-blush/70 lg:hidden"
               >
                 <Menu className="!h-5 !w-5" strokeWidth={1.7}/>
-                <span className="sr-only">Menyuni ochish</span>
+                <span className="sr-only">{t("header.openMenu")}</span>
               </Button>
               <SheetContent side="left" className="w-full max-w-sm border-sand bg-ivory p-8">
                 <SheetHeader className="mb-6 text-left">
@@ -315,6 +332,7 @@ function ShoppingHeader() {
                   </SheetTitle>
                 </SheetHeader>
                 <MenuItems variant="mobile" onNavigate={() => setOpenMenu(false)}/>
+                <LanguageSwitcher className="mt-6 w-fit"/>
                 {user ? (
                   <button
                     onClick={() => {
@@ -323,7 +341,7 @@ function ShoppingHeader() {
                     }}
                     className="mt-8 flex items-center gap-2 text-sm font-medium text-mocha"
                   >
-                    <UserCog className="h-4 w-4"/> Profilim
+                    <UserCog className="h-4 w-4"/> {t("header.profile")}
                   </button>
                 ) : null}
               </SheetContent>

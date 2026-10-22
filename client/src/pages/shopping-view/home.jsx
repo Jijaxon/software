@@ -24,6 +24,9 @@ import {getFeatureImages} from "@/store/common-slice";
 import {fetchTaxonomy} from "@/store/admin/taxonomy-slice/index.js";
 import instance from "@/utils/axios.js";
 import Reveal from "@/components/common/reveal.jsx";
+import {useT} from "@/i18n/index.jsx";
+import {localizedName} from "@/lib/use-taxonomy-labels.js";
+import {useDocumentTitle} from "@/lib/use-document-title.js";
 
 const categoriesWithIcon = [
   {
@@ -66,9 +69,9 @@ const brands = [
 ];
 
 const promises = [
-  {icon: ShieldCheck, title: "Original mahsulotlar", text: "Faqat ishonchli brendlar va manbalardan."},
-  {icon: Leaf, title: "Ehtiyotkor tanlov", text: "Har bir mahsulot teringizga mehr bilan saralangan."},
-  {icon: Gem, title: "Nafis tajriba", text: "Qulay xarid va chiroyli qadoqlash."},
+  {icon: ShieldCheck, titleKey: "home.promise1Title", textKey: "home.promise1Text"},
+  {icon: Leaf, titleKey: "home.promise2Title", textKey: "home.promise2Text"},
+  {icon: Gem, titleKey: "home.promise3Title", textKey: "home.promise3Text"},
 ];
 
 const fallbackHero = "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=2200&q=85";
@@ -101,6 +104,8 @@ function ShoppingHome() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {t, lang} = useT();
+  useDocumentTitle(null);
 
   const heroSlides = featureImageList?.length
     ? featureImageList.map((slide) => instance.defaults.baseURL + slide?.image)
@@ -135,7 +140,7 @@ function ShoppingHome() {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Mahsulot savatga qo'shildi");
+        toast.success(t("toast.addedToCart"));
       }
     });
   }
@@ -158,7 +163,7 @@ function ShoppingHome() {
     dispatch(
       fetchAllFilteredProducts({
         filterParams: {},
-        sortParams: "price-lowtohigh",
+        sortParams: "popular",
       })
     );
   }, [dispatch]);
@@ -178,8 +183,8 @@ function ShoppingHome() {
         const meta = categoriesWithIcon.find((c) => c.id === cat.slug);
         return {
           id: cat.slug,
-          label: cat.name,
-          note: cat.description || meta?.note || "Go'zallik uchun",
+          label: localizedName(cat, lang),
+          note: cat.description || (lang === "uz" ? meta?.note : null) || t("home.categoryNote"),
           icon: meta?.icon || Sparkles,
           image: cat.image ? instance.defaults.baseURL + cat.image : meta?.image || fallbackHero,
         };
@@ -187,7 +192,7 @@ function ShoppingHome() {
     : categoriesWithIcon);
 
   const displayBrands = (brandList?.length
-    ? brandList.map((b) => ({id: b.slug, label: b.name}))
+    ? brandList.map((b) => ({id: b.slug, label: localizedName(b, lang)}))
     : brands);
 
   return (
@@ -217,27 +222,27 @@ function ShoppingHome() {
           <div className="relative mx-auto flex min-h-[580px] max-w-7xl items-center px-7 py-16 md:min-h-[660px] md:px-14">
             <div className="max-w-xl text-white">
               <p className="mb-6 inline-flex animate-fade-up items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-blush backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5"/> Har kungi go'zalligingiz uchun
+                <Sparkles className="h-3.5 w-3.5"/> {t("home.heroBadge")}
               </p>
               <h1 className="animate-fade-up font-display text-6xl font-medium leading-[0.95] [animation-delay:120ms] md:text-8xl">
-                O'zingizga <em className="font-normal text-petal">mehr</em> bilan qarang.
+                {t("home.heroTitle1")} <em className="font-normal text-petal">{t("home.heroTitleEm")}</em> {t("home.heroTitle2")}
               </h1>
               <p className="mt-7 max-w-md animate-fade-up text-base leading-7 text-white/80 [animation-delay:240ms] md:text-lg">
-                Teringiz, kayfiyatingiz va uslubingizga mos go'zallik mahsulotlarini bir joydan toping.
+                {t("home.heroText")}
               </p>
               <div className="mt-10 flex animate-fade-up flex-wrap items-center gap-4 [animation-delay:360ms]">
                 <Button
                   onClick={navigateToListing}
                   className="group h-14 rounded-full bg-ivory px-8 text-sm font-semibold text-espresso shadow-xl shadow-espresso/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white"
                 >
-                  Xaridni boshlash
+                  {t("home.startShopping")}
                   <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1"/>
                 </Button>
                 <button
                   onClick={() => navigate("/shop/about")}
                   className="nav-link text-sm font-medium text-white/85 hover:text-white"
                 >
-                  Biz haqimizda
+                  {t("home.about")}
                 </button>
               </div>
             </div>
@@ -279,11 +284,11 @@ function ShoppingHome() {
       {/* KATEGORIYALAR */}
       <section className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
         <SectionHeading
-          eyebrow="O'zingizga mosini tanlang"
-          title="Go'zallik bo'limlari"
+          eyebrow={t("home.categoriesEyebrow")}
+          title={t("home.categoriesTitle")}
           action={
             <button onClick={navigateToListing} className="nav-link hidden text-sm font-semibold text-mocha md:block">
-              Barchasini ko'rish
+              {t("common.seeAll")}
             </button>
           }
         />
@@ -320,8 +325,8 @@ function ShoppingHome() {
       {/* BRENDLAR — yuguruvchi lenta */}
       <section className="border-y border-sand bg-cream py-14 md:py-16">
         <Reveal className="mx-auto mb-8 max-w-7xl px-5 text-center md:px-10">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">Tanilgan nomlar</p>
-          <h2 className="mt-3 font-display text-4xl font-medium text-espresso">Sevimli brendlar</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">{t("home.brandsEyebrow")}</p>
+          <h2 className="mt-3 font-display text-4xl font-medium text-espresso">{t("home.brandsTitle")}</h2>
         </Reveal>
         <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
           <div className="flex w-max animate-marquee gap-4 hover:[animation-play-state:paused]">
@@ -341,11 +346,11 @@ function ShoppingHome() {
       {/* MAHSULOTLAR */}
       <section className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
         <SectionHeading
-          eyebrow="Siz uchun saraladik"
-          title="Ko'p tanlanayotganlar"
+          eyebrow={t("home.productsEyebrow")}
+          title={t("home.productsTitle")}
           action={
             <button onClick={navigateToListing} className="nav-link text-sm font-semibold text-mocha">
-              Barcha mahsulotlar
+              {t("home.allProducts")}
             </button>
           }
         />
@@ -374,9 +379,30 @@ function ShoppingHome() {
           </div>
         ) : (
           <p className="rounded-3xl border border-dashed border-sand py-14 text-center text-sm text-taupe">
-            Hozircha mahsulotlar mavjud emas.
+            {t("home.noProducts")}
           </p>
         )}
+      </section>
+
+      {/* KVIZ — shaxsiy tavsiya */}
+      <section className="px-3 pb-20 md:px-6 md:pb-28">
+        <Reveal className="relative mx-auto flex max-w-7xl flex-col items-start gap-6 overflow-hidden rounded-[32px] bg-espresso px-7 py-12 text-ivory md:flex-row md:items-center md:justify-between md:px-14">
+          <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 animate-float rounded-full bg-rose/40 blur-3xl"/>
+          <div className="relative max-w-xl">
+            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-petal">
+              <Sparkles className="h-3.5 w-3.5"/> {t("home.quizEyebrow")}
+            </p>
+            <h2 className="mt-3 font-display text-4xl font-medium md:text-5xl">{t("home.quizTitle")}</h2>
+            <p className="mt-3 text-sm leading-6 text-ivory/75">{t("home.quizText")}</p>
+          </div>
+          <Button
+            onClick={() => navigate("/shop/quiz")}
+            className="group relative h-14 shrink-0 rounded-full bg-ivory px-8 text-sm font-semibold text-espresso transition-all duration-300 hover:-translate-y-0.5 hover:bg-white"
+          >
+            {t("home.quizCta")}
+            <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1"/>
+          </Button>
+        </Reveal>
       </section>
 
       {/* VA'DALAR */}
@@ -385,20 +411,20 @@ function ShoppingHome() {
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 animate-spin-slow rounded-full border border-dashed border-rose/30"/>
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-petal/50 blur-3xl"/>
           <Reveal className="relative mx-auto max-w-2xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">Nega aynan NAFIS</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-rose-deep">{t("home.whyEyebrow")}</p>
             <h2 className="mt-3 font-display text-4xl font-medium text-espresso md:text-5xl">
-              Go'zallik — <em className="text-rose-deep">ishonch</em> bilan
+              {t("home.whyTitle1")} <em className="text-rose-deep">{t("home.whyTitleEm")}</em> {t("home.whyTitle2")}
             </h2>
           </Reveal>
           <div className="relative mt-12 grid gap-5 md:grid-cols-3">
             {promises.map((item, index) => (
-              <Reveal key={item.title} delay={index * 120}>
+              <Reveal key={item.titleKey} delay={index * 120}>
                 <div className="group h-full rounded-3xl bg-white/70 p-7 backdrop-blur transition-all duration-500 hover:-translate-y-1.5 hover:bg-white hover:shadow-xl hover:shadow-rose/10">
                   <div className="grid h-12 w-12 place-items-center rounded-full bg-blush text-rose-deep transition-transform duration-500 group-hover:rotate-[20deg] group-hover:scale-110">
                     <item.icon className="h-5 w-5" strokeWidth={1.6}/>
                   </div>
-                  <h3 className="mt-5 font-display text-2xl font-semibold text-espresso">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-mocha/80">{item.text}</p>
+                  <h3 className="mt-5 font-display text-2xl font-semibold text-espresso">{t(item.titleKey)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-mocha/80">{t(item.textKey)}</p>
                 </div>
               </Reveal>
             ))}

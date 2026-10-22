@@ -1,42 +1,29 @@
-// const express = require("express");
-//
-// const {
-//   createOrder,
-//   getAllOrdersByUser,
-//   getOrderDetails,
-//   confirmPayment,
-// } = require("../../controllers/shop/order-controller");
-//
-// const router = express.Router();
-//
-// router.post("/create", createOrder);
-// router.post("/capture", confirmPayment);
-// router.get("/list/:userId", getAllOrdersByUser);
-// router.get("/details/:id", getOrderDetails);
-//
-// module.exports = router;
-
 const express = require("express");
+const { authMiddleware } = require("../../middleware/auth");
 
 const {
+  quoteOrder,
   createOrder,
   getAllOrdersByUser,
   getOrderDetails,
-  confirmPayment, // Stripe uchun tasdiqlash
+  confirmPayment,
 } = require("../../controllers/shop/order-controller");
 
 const router = express.Router();
 
-// 🧾 1. Stripe checkout session yaratish
-router.post("/create", createOrder);
+// Narx tarkibi (savat + promokod + bonus + yetkazish) — server hisoblaydi
+router.post("/quote", authMiddleware, quoteOrder);
 
-// 💳 2. To‘lovni tasdiqlash (Stripe success sahifasidan so‘ng)
-router.post("/confirm-payment", confirmPayment);
+// Stripe checkout session yaratish (foydalanuvchi tokendan olinadi)
+router.post("/create", authMiddleware, createOrder);
 
-// 📦 3. Foydalanuvchi buyurtmalari
+// To'lovni tasdiqlash (Stripe success sahifasidan so'ng)
+router.post("/confirm-payment", authMiddleware, confirmPayment);
+
+// Foydalanuvchi buyurtmalari
 router.get("/list/:userId", getAllOrdersByUser);
 
-// 🔍 4. Bitta buyurtma tafsiloti
+// Bitta buyurtma tafsiloti
 router.get("/details/:id", getOrderDetails);
 
 module.exports = router;
